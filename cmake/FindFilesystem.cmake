@@ -124,10 +124,10 @@ endif()
 cmake_push_check_state()
 
 set(CMAKE_REQUIRED_QUIET ${Filesystem_FIND_QUIETLY})
-
+set(CMAKE_REQUIRED_FLAGS "-std=c++17")
 # All of our tests required C++17 or later
 set(CMAKE_CXX_STANDARD 17)
-
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Normalize and check the component list we were given
 set(want_components ${Filesystem_FIND_COMPONENTS})
 if(Filesystem_FIND_COMPONENTS STREQUAL "")
@@ -205,7 +205,7 @@ if(CXX_FILESYSTEM_HAVE_FS)
     ]] code @ONLY)
 
     # Check a simple filesystem program without any linker flags
-    _cmcm_check_cxx_source("${code}" CXX_FILESYSTEM_NO_LINK_NEEDED)
+    check_cxx_source_compiles("${code}" CXX_FILESYSTEM_NO_LINK_NEEDED)
 
     set(can_link ${CXX_FILESYSTEM_NO_LINK_NEEDED})
 
