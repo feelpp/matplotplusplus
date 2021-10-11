@@ -9329,6 +9329,13 @@ If contributing to the documentation, please edit [`README.md`](README.md) direc
     </td></tr>
 <tr>
     <td align="center">
+        <a href="https://github.com/prudhomm">
+            <img src="https://avatars.githubusercontent.com/u/151693?v=4" width="100;" alt="prudhomm"/>
+            <br />
+            <sub><b>Christophe Prud'homme</b></sub>
+        </a>
+    </td>
+    <td align="center">
         <a href="https://github.com/dimztimz">
             <img src="https://avatars.githubusercontent.com/u/6236568?v=4" width="100;" alt="dimztimz"/>
             <br />
@@ -9362,15 +9369,15 @@ If contributing to the documentation, please edit [`README.md`](README.md) direc
             <br />
             <sub><b>Solo Super</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/acxz">
             <img src="https://avatars.githubusercontent.com/u/17132214?v=4" width="100;" alt="acxz"/>
             <br />
             <sub><b>Akash Patel</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/eagle-dai">
             <img src="https://avatars.githubusercontent.com/u/1788093?v=4" width="100;" alt="eagle-dai"/>
