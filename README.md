@@ -9375,7 +9375,7 @@ If contributing to the documentation, please edit [`README.md`](README.md) direc
         <a href="https://github.com/eagle-dai">
             <img src="https://avatars.githubusercontent.com/u/1788093?v=4" width="100;" alt="eagle-dai"/>
             <br />
-            <sub><b>eagle-dai</b></sub>
+            <sub><b>Eagle-dai</b></sub>
         </a>
     </td>
     <td align="center">
