@@ -93,7 +93,7 @@ add_library(matplot
 # Target aliases
 add_library(Matplot++::matplot ALIAS matplot)
 add_library(Matplot++::matplot++ ALIAS matplot)
-
+set_target_properties( matplot PROPERTIES VERSION 1 SOVERSION 1 )
 # Include dirs
 target_include_directories(matplot
     PUBLIC $<BUILD_INTERFACE:${MATPLOT_ROOT_DIR}/source>
