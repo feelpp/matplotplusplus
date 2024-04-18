@@ -4,14 +4,15 @@
 
 #include <limits>
 #include <matplot/axes_objects/box_chart.h>
-#include <matplot/core/axes.h>
 #include <matplot/core/axes_object.h>
+#include <matplot/core/axes_type.h>
 #include <sstream>
 
 namespace matplot {
-    box_chart::box_chart(class axes *parent) : axes_object(parent) {}
+    box_chart::box_chart(class axes_type *parent) : axes_object(parent) {}
 
-    box_chart::box_chart(class axes *parent, const std::vector<double> &y_data,
+    box_chart::box_chart(class axes_type *parent,
+                         const std::vector<double> &y_data,
                          const std::vector<double> &groups)
         : axes_object(parent), y_data_(y_data), x_data_(groups) {}
 
@@ -87,7 +88,7 @@ namespace matplot {
             face_color_ = parent_->get_color_and_bump();
             edge_color_ = face_color_;
             manual_face_color_ = true;
-            face_color_[0] = 0.6 + 0.4 * face_color_[0];
+            face_color_[0] = 0.6f + 0.4f * face_color_[0];
             edge_color_[0] /= 2.;
             edge_color_[1] /= 2.;
             edge_color_[2] /= 2.;

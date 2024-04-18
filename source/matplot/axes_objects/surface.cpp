@@ -4,20 +4,20 @@
 
 #include <cmath>
 #include <matplot/axes_objects/surface.h>
-#include <matplot/core/axes.h>
+#include <matplot/core/axes_type.h>
 #include <matplot/util/common.h>
 #include <regex>
 #include <sstream>
 
 namespace matplot {
-    surface::surface(class axes *parent) : axes_object(parent) {}
+    surface::surface(class axes_type *parent) : axes_object(parent) {}
 
-    surface::surface(class axes *parent, const vector_2d &X, const vector_2d &Y,
-                     const vector_2d &Z, const vector_2d &C,
-                     const std::string &line_spec)
+    surface::surface(class axes_type *parent, const vector_2d &X,
+                     const vector_2d &Y, const vector_2d &Z, const vector_2d &C,
+                     std::string_view line_spec)
         : axes_object(parent), X_data_(X), Y_data_(Y), Z_data_(Z), C_data_(C),
-          line_spec_(this, line_spec), contour_line_spec_(this, ""),
-          is_parametric_(false) {
+          is_parametric_(false), line_spec_(this, line_spec),
+          contour_line_spec_(this, "") {
         zmin_ = Z_data_[0][0];
         zmax_ = Z_data_[0][0];
         for (size_t i = 0; i < Z_data_.size(); ++i) {
@@ -220,7 +220,8 @@ namespace matplot {
                         } else {
                             ss << " linecolor rgb '"
                                << to_string(parent_->colormap_interpolation(
-                                      i, 0., n_contour_lines))
+                                      static_cast<double>(i), 0.,
+                                      static_cast<double>(n_contour_lines)))
                                << "'";
                         }
                     } else {
@@ -336,7 +337,7 @@ namespace matplot {
         return ss.str();
     }
 
-    std::string surface::legend_string(const std::string &title) {
+    std::string surface::legend_string(std::string_view title) {
         return " keyentry " +
                line_spec_.plot_string(
                    line_spec::style_to_plot::plot_line_only) +
@@ -406,7 +407,7 @@ namespace matplot {
                 ss << "\n";
             }
             // each row is an isoline
-            for (long i = Y_data_.size() - 1; i >= 0; --i) {
+            for (long i = static_cast<long>(Y_data_.size()) - 1; i >= 0; --i) {
                 // open row curtain or waterfall
                 if (curtain_ || waterfall_) {
                     send_point(ss, X_data_[i][0], Y_data_[i][0], zmin_,
@@ -581,7 +582,7 @@ namespace matplot {
         }
     }
 
-    class surface &surface::line_style(const std::string &str) {
+    class surface &surface::line_style(std::string_view str) {
         line_spec_.parse_string(str);
         touch();
         return *this;
@@ -766,7 +767,7 @@ namespace matplot {
         return *this;
     }
 
-    const float surface::font_size() const {
+    float surface::font_size() const {
         if (font_size_) {
             return *font_size_;
         } else {
@@ -788,7 +789,7 @@ namespace matplot {
         }
     }
 
-    class surface &surface::font(const std::string &font) {
+    class surface &surface::font(std::string_view font) {
         font_ = font;
         touch();
         return *this;
@@ -796,7 +797,7 @@ namespace matplot {
 
     const std::string &surface::font_weight() const { return font_weight_; }
 
-    class surface &surface::font_weight(const std::string &font_weight) {
+    class surface &surface::font_weight(std::string_view font_weight) {
         font_weight_ = font_weight;
         touch();
         return *this;
@@ -810,7 +811,7 @@ namespace matplot {
         return *this;
     }
 
-    class surface &surface::font_color(const std::string &fc) {
+    class surface &surface::font_color(std::string_view fc) {
         font_color(to_array(fc));
         return *this;
     }

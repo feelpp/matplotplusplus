@@ -8,16 +8,13 @@
 #include <array>
 #include <chrono>
 #include <matplot/backend/backend_interface.h>
-
-#ifndef NDEBUG
-#define TRACE_GNUPLOT_COMMANDS
-#endif
+#include <tuple>
 
 namespace matplot::backend {
     class gnuplot : public backend_interface {
       public:
         gnuplot();
-        ~gnuplot();
+        virtual ~gnuplot();
         bool is_interactive() override;
         const std::string &output() override;
         const std::string &output_format() override;
@@ -32,7 +29,7 @@ namespace matplot::backend {
         void position_y(unsigned int new_position_y) override;
         void width(unsigned int new_width) override;
         void height(unsigned int new_height) override;
-        void new_frame() override;
+        bool new_frame() override;
         bool render_data() override;
         bool supports_fonts() override;
 
@@ -47,7 +44,8 @@ namespace matplot::backend {
 
         /// Identify the default terminal type in the system
         static std::string default_terminal_type();
-        static std::pair<int, int> gnuplot_version();
+        static bool terminal_is_available(std::string_view);
+        static std::tuple<int, int, int> gnuplot_version();
         static bool terminal_has_title_option(const std::string &t);
         static bool terminal_has_size_option(const std::string &t);
         static bool terminal_has_position_option(const std::string &t);
@@ -75,7 +73,7 @@ namespace matplot::backend {
 
 #if defined(TRACE_GNUPLOT_COMMANDS) &&                                         \
     !defined(MATPLOT_BUILD_FOR_DOCUMENTATION_IMAGES)
-        static constexpr bool trace_commands = false;
+        static constexpr bool trace_commands = true;
 #else
         static constexpr bool trace_commands = false;
 #endif

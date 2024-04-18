@@ -12,7 +12,7 @@
 #include <vector>
 
 namespace matplot {
-    class axes;
+    class axes_type;
 
     class legend {
       public:
@@ -34,9 +34,10 @@ namespace matplot {
 
       public:
         legend() = default;
-        legend(class axes *parent);
-        legend(class axes *parent, std::initializer_list<std::string> names);
-        legend(class axes *parent, const std::vector<std::string> &names);
+        legend(class axes_type *parent);
+        legend(class axes_type *parent,
+               std::initializer_list<std::string> names);
+        legend(class axes_type *parent, const std::vector<std::string> &names);
 
       public /* useful functions */:
         void touch();
@@ -104,19 +105,19 @@ namespace matplot {
         void visible(bool visible);
 
         const std::string &title() const;
-        void title(const std::string &title);
+        void title(std::string_view title);
 
         const std::string &font_name() const;
-        void font_name(const std::string &font_name);
+        void font_name(std::string_view font_name);
 
         float font_size() const;
         void font_size(float font_size);
 
         const std::string &font_angle() const;
-        void font_angle(const std::string &font_angle);
+        void font_angle(std::string_view font_angle);
 
         const std::string &font_weight() const;
-        void font_weight(const std::string &font_weight);
+        void font_weight(std::string_view font_weight);
 
         const color_array &text_color() const;
         void text_color(const color_array &text_color);
@@ -144,7 +145,7 @@ namespace matplot {
         // Style
         bool box_{true};
         line_spec box_line_{"k-"};
-        color_array color_{0., 1, 1, 1};
+        // color_array color_{0., 1, 1, 1};
         bool vertical_{true};
         bool label_after_sample_{true};
         bool invert_{false};
@@ -154,7 +155,7 @@ namespace matplot {
         size_t num_rows_{0};
 
         // Parent xlim
-        class axes *parent_{nullptr};
+        class axes_type *parent_{nullptr};
     };
 } // namespace matplot
 

@@ -4,28 +4,28 @@
 
 #include <cmath>
 #include <matplot/axes_objects/line.h>
-#include <matplot/core/axes.h>
+#include <matplot/core/axes_type.h>
 #include <matplot/util/common.h>
 #include <regex>
 #include <sstream>
 
 namespace matplot {
-    line::line(class axes *parent) : axes_object(parent) {}
+    line::line(class axes_type *parent) : axes_object(parent) {}
 
-    line::line(class axes *parent, const std::vector<double> &y_data,
-               const std::string &line_spec)
-        : axes_object(parent), y_data_(y_data), line_spec_(this, line_spec) {}
+    line::line(class axes_type *parent, const std::vector<double> &y_data,
+               std::string_view line_spec)
+        : axes_object(parent), line_spec_(this, line_spec), y_data_(y_data) {}
 
-    line::line(class axes *parent, const std::vector<double> &x_data,
-               const std::vector<double> &y_data, const std::string &line_spec)
-        : axes_object(parent), x_data_(x_data), y_data_(y_data),
-          line_spec_(this, line_spec) {}
+    line::line(class axes_type *parent, const std::vector<double> &x_data,
+               const std::vector<double> &y_data, std::string_view line_spec)
+        : axes_object(parent), line_spec_(this, line_spec), y_data_(y_data),
+          x_data_(x_data) {}
 
-    line::line(class axes *parent, const std::vector<double> &x_data,
+    line::line(class axes_type *parent, const std::vector<double> &x_data,
                const std::vector<double> &y_data,
-               const std::vector<double> &z_data, const std::string &line_spec)
-        : axes_object(parent), x_data_(x_data), y_data_(y_data),
-          z_data_(z_data), line_spec_(this, line_spec) {}
+               const std::vector<double> &z_data, std::string_view line_spec)
+        : axes_object(parent), line_spec_(this, line_spec), y_data_(y_data),
+          x_data_(x_data), z_data_(z_data) {}
 
     std::vector<line_spec::style_to_plot> line::styles_to_plot() {
         std::vector<line_spec::style_to_plot> result;
@@ -132,7 +132,7 @@ namespace matplot {
         return res;
     }
 
-    std::string line::legend_string(const std::string &title) {
+    std::string line::legend_string(std::string_view title) {
         if (line_spec_.has_line() && line_spec_.has_non_custom_marker()) {
             return " keyentry " +
                    line_spec_.plot_string(
@@ -153,15 +153,13 @@ namespace matplot {
 
     std::string line::data_string() {
         const bool markers_are_automatic = marker_indices_.empty();
-        const bool has_line_and_marker =
-            line_spec_.has_line() && line_spec_.has_non_custom_marker();
-        const bool can_plot_together =
-            markers_are_automatic &&
-            line_spec_.can_plot_line_and_marker_together() &&
-            has_line_and_marker;
-        const bool needs_to_plot_twice =
-            !can_plot_together && has_line_and_marker;
-        size_t repetitions = 1 + needs_to_plot_twice;
+        // const bool has_line_and_marker = line_spec_.has_line() &&
+        // line_spec_.has_non_custom_marker(); const bool can_plot_together =
+        // markers_are_automatic &&
+        // line_spec_.can_plot_line_and_marker_together() &&
+        // has_line_and_marker; const bool needs_to_plot_twice =
+        // !can_plot_together && has_line_and_marker; size_t repetitions = 1 +
+        // needs_to_plot_twice;
         const bool x_is_manual = !x_data_.empty();
 
         std::stringstream ss;
@@ -242,7 +240,7 @@ namespace matplot {
         if (!is_polar()) {
             if (x_data_.empty()) {
                 if (!y_data_.empty()) {
-                    return y_data_.size() - 1;
+                    return static_cast<double>(y_data_.size() - 1);
                 } else {
                     return axes_object::xmax();
                 }
@@ -348,7 +346,7 @@ namespace matplot {
 
     bool line::requires_colormap() { return !marker_colors_.empty(); }
 
-    class line &line::line_style(const std::string &str) {
+    class line &line::line_style(std::string_view str) {
         line_spec_.parse_string(str);
         touch();
         return *this;
@@ -436,8 +434,10 @@ namespace matplot {
     }
 
     class line &line::marker_size(const std::vector<double> &size_vector) {
-        std::vector<float> size_vector_float(size_vector.begin(),
-                                             size_vector.end());
+        std::vector<float> size_vector_float(size_vector.size());
+        std::transform(size_vector.begin(), size_vector.end(),
+                       size_vector_float.begin(),
+                       [](const double &x) { return static_cast<float>(x); });
         marker_size(size_vector_float);
         return *this;
     }
@@ -504,6 +504,12 @@ namespace matplot {
         polar_ = polar;
         touch();
         return *this;
+    }
+
+    void line::run_draw_commands() {
+        // ask axes to draw the line
+        maybe_update_line_spec();
+        parent_->draw_path(x_data_,y_data_,line_spec_.color());
     }
 
 } // namespace matplot

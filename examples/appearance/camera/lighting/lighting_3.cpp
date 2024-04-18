@@ -4,8 +4,8 @@ int main() {
     using namespace matplot;
 
     auto [x, y, z] = peaks();
-    surf(x, y, z)->lighting(true).primary(0.8);
+    surf(x, y, z)->lighting(true).primary(0.8f);
 
-    wait();
+    show();
     return 0;
 }

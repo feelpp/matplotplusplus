@@ -5,23 +5,25 @@
 #include <algorithm>
 #include <cmath>
 #include <matplot/axes_objects/bars.h>
-#include <matplot/core/axes.h>
+#include <matplot/core/axes_type.h>
 #include <matplot/util/common.h>
 #include <sstream>
 
 namespace matplot {
 
-    bars::bars(class axes *parent) : axes_object(parent) {}
+    bars::bars(class axes_type *parent) : axes_object(parent) {}
 
-    bars::bars(class axes *parent, const std::vector<double> &y)
+    bars::bars(class axes_type *parent, const std::vector<double> &y)
         : bars(parent, std::vector<std::vector<double>>({y})) {}
 
-    bars::bars(class axes *parent, const std::vector<std::vector<double>> &Y)
+    bars::bars(class axes_type *parent,
+               const std::vector<std::vector<double>> &Y)
         : axes_object(parent), ys_(Y) {
         if (parent_->children().empty()) {
             parent_->x_axis().limits({0, double(ys_[0].size() + 1)});
             if (ys_[0].size() <= 15) {
-                parent_->x_axis().tick_values(iota(1, ys_[0].size()));
+                parent_->x_axis().tick_values(
+                    iota(1., static_cast<double>(ys_[0].size())));
             }
         }
         if (parent_->y_axis().limits_mode_auto()) {
@@ -37,11 +39,11 @@ namespace matplot {
         parent_->x_axis().zero_axis(true);
     }
 
-    bars::bars(class axes *parent, const std::vector<double> &x,
+    bars::bars(class axes_type *parent, const std::vector<double> &x,
                const std::vector<double> &y)
         : bars(parent, x, std::vector<std::vector<double>>({y})) {}
 
-    bars::bars(class axes *parent, const std::vector<double> &x,
+    bars::bars(class axes_type *parent, const std::vector<double> &x,
                const std::vector<std::vector<double>> &Y)
         : axes_object(parent), x_(x), ys_(Y) {
         if (parent_->children().empty()) {
@@ -87,7 +89,7 @@ namespace matplot {
         return res;
     }
 
-    std::string bars::legend_string(const std::string &title) {
+    std::string bars::legend_string(std::string_view title) {
         std::string res;
         for (size_t i = 0; i < ys_.size(); ++i) {
             res += " keyentry with boxes fillstyle solid border rgb '" +
@@ -121,7 +123,7 @@ namespace matplot {
     }
 
     double bars::range_for_cluster() {
-        double min_x_diff = x_minimum_difference();
+        // double min_x_diff = x_minimum_difference();
         const size_t n_bar_groups = ys_.size();
         // space taken by the cluster in the x axis
         return bar_width_ / n_bar_groups;
@@ -160,7 +162,7 @@ namespace matplot {
         if (!x_.empty()) {
             return *std::max_element(x_.begin(), x_.end());
         } else {
-            return ys_[0].size() + 1;
+            return static_cast<double>(ys_[0].size() + 1);
         }
     }
 
@@ -168,7 +170,7 @@ namespace matplot {
         if (!x_.empty()) {
             return *std::min_element(x_.begin(), x_.end());
         } else {
-            return ys_[0].size() + 1;
+            return static_cast<double>(ys_[0].size() + 1);
         }
     }
 
@@ -230,7 +232,7 @@ namespace matplot {
         return *this;
     }
 
-    class bars &bars::face_color(const std::string &color) {
+    class bars &bars::face_color(std::string_view color) {
         face_color(to_array(color));
         return *this;
     }
@@ -267,7 +269,7 @@ namespace matplot {
         return *this;
     }
 
-    class bars &bars::edge_color(const std::string &color) {
+    class bars &bars::edge_color(std::string_view color) {
         edge_color(to_array(color));
         return *this;
     }

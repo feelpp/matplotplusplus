@@ -6,13 +6,13 @@ int main() {
 
     auto funx = [](double u, double v) { return u * sin(v); };
     auto funy = [](double u, double v) { return -u * cos(v); };
-    auto funz = [](double u, double v) { return v; };
+    auto funz = [](double, double v) { return v; };
     fsurf(funx, funy, funz, {-5, 5, -5, -2}, "--")->edge_color("g");
     hold(on);
 
     fsurf(funx, funy, funz, {-5, 5, -2, +2})->edge_color("none");
     hold(off);
 
-    wait();
+    show();
     return 0;
 }

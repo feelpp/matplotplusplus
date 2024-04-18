@@ -13,15 +13,15 @@
 namespace matplot {
     class string_function : public line {
       public:
-        explicit string_function(class axes *parent);
-        string_function(class axes *parent, const std::string &equation,
-                        const std::string &line_spec = "");
+        explicit string_function(class axes_type *parent);
+        string_function(class axes_type *parent, std::string_view equation,
+                        std::string_view line_spec = "");
 
         /// If we receive an axes_handle, we can convert it to a raw
         /// pointer because there is no ownership involved here
         template <class... Args>
-        string_function(const axes_handle &parent, Args... args)
-            : string_function(parent.get(), args...) {}
+        string_function(const axes_handle &parent, Args&&... args)
+            : string_function(parent.get(), std::forward<Args>(args)...) {}
 
       public:
         std::string plot_string() override;
@@ -34,7 +34,7 @@ namespace matplot {
 
       public:
         const std::string &equation() const;
-        class string_function &equation(const std::string &equation);
+        class string_function &equation(std::string_view equation);
 
       private:
         std::string equation_;

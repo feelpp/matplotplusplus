@@ -4,8 +4,8 @@
 int main() {
     using namespace matplot;
 
-    auto funx = [](double s, double t) { return sin(s); };
-    auto funy = [](double s, double t) { return cos(s); };
+    auto funx = [](double s, double) { return sin(s); };
+    auto funy = [](double s, double) { return cos(s); };
     auto funz = [](double s, double t) { return t / 10 * sin(1. / s); };
 
     tiledlayout(2, 1);
@@ -19,6 +19,6 @@ int main() {
     view(-172, 25);
     title("Increased Mesh Density");
 
-    wait();
+    show();
     return 0;
 }

@@ -9,12 +9,12 @@ int main() {
     auto g = graph(edges);
     g->layout_algorithm(network::layout::force);
 
-    for (size_t i = 0; i < 300; ++i) {
+    for (int i = 0; i < 300; ++i) {
         g->layout_iterations(i);
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    wait();
+    show();
     return 0;
 }
 

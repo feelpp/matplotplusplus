@@ -8,26 +8,26 @@
 #include <matplot/axes_objects/line.h>
 
 namespace matplot {
-    class axes;
+    class axes_type;
 
     class filled_area : public line {
       public:
         enum class type { vertical, horizontal, both };
 
       public:
-        explicit filled_area(class axes *parent);
+        explicit filled_area(class axes_type *parent);
 
         /// Construct with x and y error
-        filled_area(class axes *parent, const std::vector<double> &x,
+        filled_area(class axes_type *parent, const std::vector<double> &x,
                     const std::vector<double> &y,
                     const std::vector<double> &base_values = {0.},
-                    bool stacked = true, const std::string &line_spec = "k-");
+                    bool stacked = true, std::string_view line_spec = "k-");
 
         /// If we receive an axes_handle, we can convert it to a raw
         /// pointer because there is no ownership of the xlim
         template <class... Args>
-        filled_area(const axes_handle &parent, Args... args)
-            : filled_area(parent.get(), args...) {}
+        filled_area(const axes_handle &parent, Args&&... args)
+            : filled_area(parent.get(), std::forward<Args>(args)...) {}
 
       public /* override the plotting function for filled_area */:
         std::string plot_string() override;

@@ -3,6 +3,7 @@
 //
 
 #include <algorithm>
+#include <matplot/core/figure_registry.h>
 #include <matplot/freestanding/axes_functions.h>
 
 namespace matplot {
@@ -14,7 +15,7 @@ namespace matplot {
 
     /// \brief Create new axes in a figure
     axes_handle axes(figure_handle parent, bool replace_if_overlap) {
-        axes_handle h = std::make_shared<class axes>(parent);
+        axes_handle h = std::make_shared<class axes_type>(parent);
         return axes(h, parent, replace_if_overlap);
     }
 
@@ -161,9 +162,9 @@ namespace matplot {
         float unit_x = x / norm;
         float unit_y = y / norm;
         float unit_z = z / norm;
-        float az = atan2(unit_x, -unit_y) * 180 / pi;
-        float el =
-            atan2(unit_z, sqrt(pow(unit_x, 2) + pow(unit_y, 2))) * 180 / pi;
+        float az = std::atan2(unit_x, -unit_y) * 180.f / static_cast<float>(pi);
+        float el = std::atan2(unit_z, sqrt(std::pow(unit_x, 2.f) + std::pow(unit_y, 2.f))) *
+                   180.f / static_cast<float>(pi);
         view(ax, az, el);
         return std::make_pair(az, el);
     }
@@ -182,71 +183,71 @@ namespace matplot {
 
     std::pair<float, float> view(axes_handle ax) { return ax->view(); }
 
-    void title(const std::string &str) { title(gca(), str); }
+    void title(std::string_view str) { title(gca(), str); }
 
-    void title(axes_handle ax, const std::string &str) { ax->title(str); }
+    void title(axes_handle ax, std::string_view str) { ax->title(str); }
 
-    void title(const std::string &str, const color_array &c) {
+    void title(std::string_view str, const color_array &c) {
         auto ax = gca();
         title(ax, str);
         ax->title_color(c);
     }
 
-    void title(axes_handle ax, const std::string &str, const color_array &c) {
+    void title(axes_handle ax, std::string_view str, const color_array &c) {
         title(ax, str);
         ax->title_color(c);
     }
 
-    void title(legend_handle lgd, const std::string &str) { lgd->title(str); }
+    void title(legend_handle lgd, std::string_view str) { lgd->title(str); }
 
-    void sgtitle(const std::string &str) { sgtitle(gca(), str); }
+    void sgtitle(std::string_view str) { sgtitle(gca(), str); }
 
-    void sgtitle(axes_handle ax, const std::string &str) {
+    void sgtitle(axes_handle ax, std::string_view str) {
         ax->parent()->title(str);
     }
 
-    void sgtitle(const std::string &str, const color_array &c) {
+    void sgtitle(std::string_view str, const color_array &c) {
         auto ax = gca();
         sgtitle(ax, str);
         ax->parent()->title_color(c);
     }
 
-    void sgtitle(axes_handle ax, const std::string &str, const color_array &c) {
+    void sgtitle(axes_handle ax, std::string_view str, const color_array &c) {
         sgtitle(ax, str);
         ax->parent()->title_color(c);
     }
 
-    void xlabel(const std::string &str) { xlabel(gca(), str); }
+    void xlabel(std::string_view str) { xlabel(gca(), str); }
 
-    void xlabel(axes_handle ax, const std::string &str) { ax->xlabel(str); }
+    void xlabel(axes_handle ax, std::string_view str) { ax->xlabel(str); }
 
-    void ylabel(const std::string &str) { ylabel(gca(), str); }
+    void ylabel(std::string_view str) { ylabel(gca(), str); }
 
-    void ylabel(axes_handle ax, const std::string &str) { ax->ylabel(str); }
+    void ylabel(axes_handle ax, std::string_view str) { ax->ylabel(str); }
 
-    void y2label(const std::string &str) { y2label(gca(), str); }
+    void y2label(std::string_view str) { y2label(gca(), str); }
 
-    void y2label(axes_handle ax, const std::string &str) { ax->y2label(str); }
+    void y2label(axes_handle ax, std::string_view str) { ax->y2label(str); }
 
-    void zlabel(const std::string &str) { zlabel(gca(), str); }
+    void zlabel(std::string_view str) { zlabel(gca(), str); }
 
-    void zlabel(axes_handle ax, const std::string &str) { ax->zlabel(str); }
+    void zlabel(axes_handle ax, std::string_view str) { ax->zlabel(str); }
 
-    void xtickformat(const std::string &str) { xtickformat(gca(), str); }
+    void xtickformat(std::string_view str) { xtickformat(gca(), str); }
 
-    void xtickformat(axes_handle ax, const std::string &str) {
+    void xtickformat(axes_handle ax, std::string_view str) {
         ax->xtickformat(str);
     }
 
-    void ytickformat(const std::string &str) { ytickformat(gca(), str); }
+    void ytickformat(std::string_view str) { ytickformat(gca(), str); }
 
-    void ytickformat(axes_handle ax, const std::string &str) {
+    void ytickformat(axes_handle ax, std::string_view str) {
         ax->ytickformat(str);
     }
 
-    void ztickformat(const std::string &str) { ztickformat(gca(), str); }
+    void ztickformat(std::string_view str) { ztickformat(gca(), str); }
 
-    void ztickformat(axes_handle ax, const std::string &str) {
+    void ztickformat(axes_handle ax, std::string_view str) {
         ax->ztickformat(str);
     }
 
@@ -527,20 +528,20 @@ namespace matplot {
         ah->touch();
     }
 
-    class axis &colorbar() {
+    class axis_type &colorbar() {
         return colorbar(gca());
     }
 
-    class axis &colorbar(axes_handle ah) {
+    class axis_type &colorbar(axes_handle ah) {
         ah->color_box(true);
         return ah->cb_axis();
     }
 
-    class axis &colorbar(bool v) {
+    class axis_type &colorbar(bool v) {
         return colorbar(gca(), v);
     }
 
-    class axis &colorbar(axes_handle ah, bool v) {
+    class axis_type &colorbar(axes_handle ah, bool v) {
         ah->color_box(v);
         return ah->cb_axis();
     }
@@ -553,14 +554,14 @@ namespace matplot {
         }
     }
 
-    void axis(keyword_automatic_type automatic) {
+    void axis(keyword_automatic_type automatic_keywork) {
         axes_handle ax = gca();
-        ax->limits_mode(automatic);
+        ax->limits_mode(automatic_keywork);
     }
 
-    void axis(keyword_manual_type manual) {
+    void axis(keyword_manual_type manual_keyword) {
         axes_handle ax = gca();
-        ax->limits_mode(manual);
+        ax->limits_mode(manual_keyword);
     }
 
     void axis(keyword_ij_type) {
@@ -623,19 +624,21 @@ namespace matplot {
 
     void axis(axes_handle ax, keyword_square_type) {
         axis(ax, equal);
-        double w = ax->width() * ax->parent()->width();
-        double h = ax->height() * ax->parent()->height();
+        float w = ax->width() * ax->parent()->width();
+        float h = ax->height() * ax->parent()->height();
         // make w = h
         if (w > h) {
             double old_width = ax->width();
             double new_width = h / ax->parent()->width();
-            ax->width(new_width);
-            ax->x_origin(ax->x_origin() + (old_width - new_width) / 2.);
+            ax->width(static_cast<float>(new_width));
+            ax->x_origin(ax->x_origin() +
+                         (static_cast<float>(old_width - new_width)) / 2.f);
         } else if (h > w) {
             double old_height = ax->height();
             double new_height = h / ax->parent()->height();
-            ax->height(new_height);
-            ax->y_origin(ax->y_origin() + (old_height - new_height) / 2.);
+            ax->height(static_cast<float>(new_height));
+            ax->y_origin(ax->y_origin() +
+                         (static_cast<float>(old_height - new_height)) / 2.f);
         }
     }
 

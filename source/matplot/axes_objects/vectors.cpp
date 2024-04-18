@@ -4,63 +4,107 @@
 
 #include <cmath>
 #include <matplot/axes_objects/vectors.h>
-#include <matplot/core/axes.h>
+#include <matplot/core/axes_type.h>
 #include <matplot/util/common.h>
 #include <regex>
 #include <sstream>
 
 namespace matplot {
-    vectors::vectors(class axes *parent) : axes_object(parent) {}
+    vectors::vectors(class axes_type *parent) : axes_object(parent) {}
 
-    vectors::vectors(class axes *parent, const std::vector<double> &v_data,
-                     const std::string &line_spec)
-        : axes_object(parent), v_data_(v_data), line_spec_(this, line_spec) {}
+    vectors::vectors(class axes_type *parent, const std::vector<double> &v_data,
+                     std::string_view line_spec)
+        : axes_object(parent), line_spec_(this, line_spec), v_data_(v_data) {}
 
-    vectors::vectors(class axes *parent, const std::vector<double> &u_data,
+    vectors::vectors(class axes_type *parent, const std::vector<double> &u_data,
                      const std::vector<double> &v_data,
-                     const std::string &line_spec)
-        : axes_object(parent), u_data_(u_data), v_data_(v_data),
-          line_spec_(this, line_spec) {}
+                     std::string_view line_spec)
+        : axes_object(parent), line_spec_(this, line_spec), u_data_(u_data),
+          v_data_(v_data) {}
 
-    vectors::vectors(class axes *parent, const std::vector<double> &u_data,
+    vectors::vectors(class axes_type *parent, const std::vector<double> &u_data,
                      const std::vector<double> &v_data,
                      const std::vector<double> &w_data,
-                     const std::string &line_spec)
-        : axes_object(parent), u_data_(u_data), v_data_(v_data),
-          w_data_(w_data), line_spec_(this, line_spec) {}
+                     std::string_view line_spec)
+        : axes_object(parent), line_spec_(this, line_spec), u_data_(u_data),
+          v_data_(v_data), w_data_(w_data) {}
 
-    vectors::vectors(class axes *parent, const std::vector<double> &x_data,
+    vectors::vectors(class axes_type *parent, const std::vector<double> &x_data,
                      const std::vector<double> &y_data,
                      const std::vector<double> &u_data,
                      const std::vector<double> &v_data,
-                     const std::string &line_spec)
-        : axes_object(parent), x_data_(x_data), y_data_(y_data),
-          u_data_(u_data), v_data_(v_data), line_spec_(this, line_spec) {}
+                     std::string_view line_spec)
+        : axes_object(parent), line_spec_(this, line_spec), y_data_(y_data),
+          x_data_(x_data), u_data_(u_data), v_data_(v_data) {}
 
-    vectors::vectors(class axes *parent, const std::vector<double> &x_data,
+    vectors::vectors(class axes_type *parent, const std::vector<double> &x_data,
+                     const std::vector<double> &y_data,
+                     const std::vector<double> &u_data,
+                     const std::vector<double> &v_data,
+                     const std::vector<double> &c_data,
+                     std::string_view line_spec)
+        : axes_object(parent), line_spec_(this, line_spec), y_data_(y_data),
+          x_data_(x_data), u_data_(u_data), v_data_(v_data), c_data_(c_data) {}
+
+    vectors::vectors(class axes_type *parent, const std::vector<double> &x_data,
                      const std::vector<double> &y_data,
                      const std::vector<double> &z_data,
                      const std::vector<double> &u_data,
                      const std::vector<double> &v_data,
                      const std::vector<double> &w_data,
-                     const std::string &line_spec)
-        : axes_object(parent), x_data_(x_data), y_data_(y_data),
-          z_data_(z_data), u_data_(u_data), v_data_(v_data), w_data_(w_data),
-          line_spec_(this, line_spec) {}
+                     std::string_view line_spec)
+        : axes_object(parent), line_spec_(this, line_spec), y_data_(y_data),
+          x_data_(x_data), z_data_(z_data), u_data_(u_data), v_data_(v_data),
+          w_data_(w_data) {}
+
+    vectors::vectors(class axes_type *parent, const std::vector<double> &x_data,
+                     const std::vector<double> &y_data,
+                     const std::vector<double> &z_data,
+                     const std::vector<double> &u_data,
+                     const std::vector<double> &v_data,
+                     const std::vector<double> &w_data,
+                     const std::vector<double> &c_data,
+                     std::string_view line_spec)
+        : axes_object(parent), line_spec_(this, line_spec), y_data_(y_data),
+          x_data_(x_data), z_data_(z_data), u_data_(u_data), v_data_(v_data),
+          w_data_(w_data), c_data_(c_data) {}
 
     std::string vectors::plot_string() {
         maybe_update_line_spec();
         std::stringstream ss;
-        ss << " '-' with vectors " +
-                  line_spec_.plot_string(
-                      line_spec::style_to_plot::plot_line_only, false);
+        ss << " '-' with vectors";
+        if (!c_data_.empty()) {
+            ss << " linecolor palette";
+            ss << " linewidth " << line_spec_.line_width();
+
+            switch (line_spec_.line_style()) {
+            case line_spec::line_style::solid_line:
+                ss << " dashtype 1";
+                break;
+            case line_spec::line_style::dashed_line:
+                ss << " dashtype '--'";
+                break;
+            case line_spec::line_style::dotted_line:
+                ss << " dashtype '.'";
+                break;
+            case line_spec::line_style::dash_dot_line:
+                ss << " dashtype '-.'";
+                break;
+            default:
+                break;
+            }
+        } else {
+            ss << line_spec_.plot_string(
+                line_spec::style_to_plot::plot_line_only, false);
+        }
+
         if (use_y2_) {
             ss << " xlim x1y2";
         }
         return ss.str();
     }
 
-    std::string vectors::legend_string(const std::string &title) {
+    std::string vectors::legend_string(std::string_view title) {
         return " keyentry with vectors " +
                line_spec_.plot_string(line_spec::style_to_plot::plot_line_only,
                                       false) +
@@ -79,6 +123,7 @@ namespace matplot {
                 double u_value = u_data_.size() > i ? u_data_[i] : 0;
                 double v_value = v_data_.size() > i ? v_data_[i] : 0;
                 double w_value = w_data_.size() > i ? w_data_[i] : 0;
+                double c_value = c_data_.size() > i ? c_data_[i] : 0;
 
                 bool is_end_of_series =
                     !std::isfinite(x_value) || !std::isfinite(y_value) ||
@@ -97,12 +142,31 @@ namespace matplot {
                     ss << "  " << 0.0;
                 }
 
+                if (normalize_) {
+                    double mag =
+                        std::sqrt(u_value * u_value + v_value * v_value +
+                                  w_value * w_value);
+                    if (mag != 0.0) {
+                        u_value /= mag;
+                        v_value /= mag;
+                        w_value /= mag;
+                    }
+                    if (scale_ != 0.0) {
+                        u_value *= scale_;
+                        v_value *= scale_;
+                        w_value *= scale_;
+                    }
+                }
+
                 ss << "  " << u_value;
                 ss << "  " << v_value;
                 if (is_3d()) {
                     ss << "  " << w_value;
                 } else if (parent_->is_3d()) {
                     ss << "  " << 0.0;
+                }
+                if (!c_data_.empty()) {
+                    ss << " " << c_value;
                 }
 
                 ss << "\n";
@@ -123,8 +187,7 @@ namespace matplot {
     }
 
     void vectors::maybe_update_line_spec() {
-        if (line_spec_.has_line() && !line_spec_.user_color()) {
-            // if user didn't set the color, get color from xlim
+        if (!line_spec_.user_color() && c_data_.empty()) {
             auto c = parent_->get_color_and_bump();
             line_spec_.color(c);
         } else if (line_spec_.has_non_custom_marker() &&
@@ -243,7 +306,7 @@ namespace matplot {
         }
     }
 
-    class vectors &vectors::line_style(const std::string &str) {
+    class vectors &vectors::line_style(std::string_view str) {
         line_spec_.parse_string(str);
         touch();
         return *this;
@@ -332,8 +395,10 @@ namespace matplot {
 
     class vectors &
     vectors::marker_size(const std::vector<double> &size_vector) {
-        std::vector<float> size_vector_float(size_vector.begin(),
-                                             size_vector.end());
+        std::vector<float> size_vector_float(size_vector.size());
+        std::transform(size_vector.begin(), size_vector.end(),
+                       size_vector_float.begin(),
+                       [](const double &x) { return static_cast<float>(x); });
         marker_size(size_vector_float);
         return *this;
     }
@@ -393,6 +458,22 @@ namespace matplot {
 
     class vectors &vectors::polar(bool polar) {
         polar_ = polar;
+        touch();
+        return *this;
+    }
+
+    bool vectors::normalize() const { return normalize_; }
+
+    class vectors &vectors::normalize(bool normalize) {
+        normalize_ = normalize;
+        touch();
+        return *this;
+    }
+
+    double vectors::scale() const { return scale_; }
+
+    class vectors &vectors::scale(double scale) {
+        scale_ = scale;
         touch();
         return *this;
     }

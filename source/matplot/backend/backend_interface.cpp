@@ -3,6 +3,7 @@
 //
 
 #include "backend_interface.h"
+#include <matplot/core/figure_type.h>
 #include <matplot/util/common.h>
 
 namespace matplot::backend {
@@ -20,14 +21,16 @@ namespace matplot::backend {
         return r;
     }
 
-    bool backend_interface::output(const std::string &filename) {
+    bool
+    backend_interface::output([[maybe_unused]] const std::string &filename) {
         throw std::logic_error(
             "There is no function to set the output in this backend yet. Maybe "
             "this backend does not support non-interactive mode.");
     }
 
-    bool backend_interface::output(const std::string &filename,
-                                   const std::string &file_format) {
+    bool
+    backend_interface::output([[maybe_unused]] const std::string &filename,
+                              [[maybe_unused]] const std::string &file_format) {
         throw std::logic_error(
             "There is no function to set the output in this backend yet. Maybe "
             "this backend does not support non-interactive mode.");
@@ -37,24 +40,18 @@ namespace matplot::backend {
 
     unsigned int backend_interface::height() { return 420; }
 
-    void backend_interface::width(unsigned int new_width) {
+    void backend_interface::width([[maybe_unused]] unsigned int new_width) {
         throw std::logic_error(
             "There is no function to set the width in this backend yet");
     }
 
-    void backend_interface::height(unsigned int new_height) {
+    void backend_interface::height([[maybe_unused]] unsigned int new_height) {
         throw std::logic_error(
             "There is no function to set the height in this backend yet");
     }
 
-    void backend_interface::new_frame() {
-        if (!consumes_gnuplot_commands()) {
-            throw std::logic_error(
-                "There is no function to start new_frame in this backend yet");
-        } else {
-            throw std::logic_error("This backend has no function new_frame "
-                                   "because it is based on gnuplot commands");
-        }
+    bool backend_interface::new_frame() {
+        return true;
     }
 
     bool backend_interface::render_data() {
@@ -67,9 +64,10 @@ namespace matplot::backend {
         }
     }
 
-    void backend_interface::draw_path(const std::vector<double> &x,
-                                      const std::vector<double> &y,
-                                      const std::vector<double> &z) {
+    void backend_interface::draw_path(
+        [[maybe_unused]] const std::vector<double> &x,
+        [[maybe_unused]] const std::vector<double> &y,
+        [[maybe_unused]] const std::array<float, 4> &color) {
         if (!consumes_gnuplot_commands()) {
             throw std::logic_error(
                 "There is no function to draw_path in this backend yet");
@@ -79,9 +77,10 @@ namespace matplot::backend {
         }
     }
 
-    void backend_interface::draw_markers(const std::vector<double> &x,
-                                         const std::vector<double> &y,
-                                         const std::vector<double> &z) {
+    void backend_interface::draw_markers(
+        [[maybe_unused]] const std::vector<double> &x,
+        [[maybe_unused]] const std::vector<double> &y,
+        [[maybe_unused]] const std::vector<double> &z) {
         if (!consumes_gnuplot_commands()) {
             throw std::logic_error(
                 "There is no function to draw_markers in this backend yet");
@@ -91,9 +90,10 @@ namespace matplot::backend {
         }
     }
 
-    void backend_interface::draw_text(const std::vector<double> &x,
-                                      const std::vector<double> &y,
-                                      const std::vector<double> &z) {
+    void backend_interface::draw_text(
+        [[maybe_unused]] const std::vector<double> &x,
+        [[maybe_unused]] const std::vector<double> &y,
+        [[maybe_unused]] const std::vector<double> &z) {
         if (!consumes_gnuplot_commands()) {
             throw std::logic_error(
                 "There is no function to draw_text in this backend yet");
@@ -103,10 +103,10 @@ namespace matplot::backend {
         }
     }
 
-    void
-    backend_interface::draw_image(const std::vector<std::vector<double>> &x,
-                                  const std::vector<std::vector<double>> &y,
-                                  const std::vector<std::vector<double>> &z) {
+    void backend_interface::draw_image(
+        [[maybe_unused]] const std::vector<std::vector<double>> &x,
+        [[maybe_unused]] const std::vector<std::vector<double>> &y,
+        [[maybe_unused]] const std::vector<std::vector<double>> &z) {
         if (!consumes_gnuplot_commands()) {
             throw std::logic_error(
                 "There is no function to draw_image in this backend yet");
@@ -116,9 +116,10 @@ namespace matplot::backend {
         }
     }
 
-    void backend_interface::draw_triangle(const std::vector<double> &x,
-                                          const std::vector<double> &y,
-                                          const std::vector<double> &z) {
+    void backend_interface::draw_triangle(
+        [[maybe_unused]] const std::vector<double> &x,
+        [[maybe_unused]] const std::vector<double> &y,
+        [[maybe_unused]] const std::vector<double> &z) {
         if (!consumes_gnuplot_commands()) {
             throw std::logic_error(
                 "There is no function to draw_triangle in this backend yet");
@@ -128,7 +129,8 @@ namespace matplot::backend {
         }
     }
 
-    void backend_interface::run_command(const std::string &text) {
+    void
+    backend_interface::run_command([[maybe_unused]] const std::string &text) {
         if (consumes_gnuplot_commands()) {
             throw std::logic_error(
                 "There is no function to run_command in this backend yet");
@@ -139,7 +141,8 @@ namespace matplot::backend {
         }
     }
 
-    void backend_interface::include_comment(const std::string &text) {
+    void backend_interface::include_comment(
+        [[maybe_unused]] const std::string &text) {
         if (consumes_gnuplot_commands()) {
             throw std::logic_error(
                 "There is no function to include_comment in this backend yet");
@@ -150,9 +153,11 @@ namespace matplot::backend {
         }
     }
 
-    void backend_interface::wait() {
+    void backend_interface::show(class matplot::figure_type *f) {
         // The default implementation waits for the user to interact with the
-        // console
+        // console. In interactive backends we expect this to start a render
+        // loop that will stop only when the user closes the window.
+        f->draw();
         matplot::wait();
     }
 
@@ -162,17 +167,39 @@ namespace matplot::backend {
 
     unsigned int backend_interface::position_y() { return 558; }
 
-    void backend_interface::position_x(unsigned int new_position_x) {}
+    void backend_interface::position_x(
+        [[maybe_unused]] unsigned int new_position_x) {}
 
-    void backend_interface::position_y(unsigned int new_position_y) {}
+    void backend_interface::position_y(
+        [[maybe_unused]] unsigned int new_position_y) {}
 
-    const std::array<float, 4> &backend_interface::background_color() {
-        static std::array<float, 4> bg{0.94f, 0.94f, 0.94f, 1.0f};
-        return bg;
+    void backend_interface::draw_background(
+        [[maybe_unused]] const std::array<float, 4> &color) {}
+
+    void backend_interface::draw_rectangle(
+        [[maybe_unused]] const double x1, [[maybe_unused]] const double x2,
+        [[maybe_unused]] const double y1, [[maybe_unused]] const double y2,
+        [[maybe_unused]] const std::array<float, 4> &color) {
+        if (!consumes_gnuplot_commands()) {
+            throw std::logic_error(
+                "There is no function to draw_rectangle in this backend yet");
+        } else {
+            throw std::logic_error("This backend has no function draw_triangle "
+                                   "because it is based on gnuplot commands");
+        }
     }
 
-    void backend_interface::background_color(const std::array<float, 4> &RGBA) {
+    bool backend_interface::should_close() {
+        // by default, we assume backends simply don't have this feature
+        return false;
+    }
 
+    void
+    backend_interface::window_title([[maybe_unused]] const std::string &title) {
+    }
+
+    std::string backend_interface::window_title() {
+        return "";
     }
 
 } // namespace matplot::backend

@@ -6,7 +6,7 @@
 #include <cmath>
 #include <matplot/axes_objects/contours.h>
 #include <matplot/axes_objects/histogram.h>
-#include <matplot/core/axes.h>
+#include <matplot/core/axes_type.h>
 #include <matplot/freestanding/plot.h>
 #include <matplot/util/common.h>
 #include <numeric>
@@ -15,22 +15,24 @@
 #include <unordered_set>
 
 namespace matplot {
-    contours::contours(class axes *parent, const vector_2d &X,
+    contours::contours(class axes_type *parent, const vector_2d &X,
                        const vector_2d &Y, const vector_2d &Z,
-                       const std::string &line_spec)
-        : axes_object(parent), X_data_(X), Y_data_(Y), Z_data_(Z),
-          line_spec_(this, line_spec) {
+                       std::string_view line_spec)
+        : axes_object(parent), line_spec_(this, line_spec), X_data_(X),
+          Y_data_(Y), Z_data_(Z) {
         initialize_preprocessed_data();
-        contour_generator_ = QuadContourGenerator(X_data_, Y_data_, Z_data_,
-                                                  _corner_mask, nchunk_);
+        contour_generator_ =
+            QuadContourGenerator(X_data_, Y_data_, Z_data_, _corner_mask,
+                                 static_cast<long>(nchunk_));
     }
 
-    contours::contours(class axes *parent, const vector_2d &Z,
-                       const std::string &line_spec)
-        : axes_object(parent), Z_data_(Z), line_spec_(this, line_spec) {
+    contours::contours(class axes_type *parent, const vector_2d &Z,
+                       std::string_view line_spec)
+        : axes_object(parent), line_spec_(this, line_spec), Z_data_(Z) {
         initialize_preprocessed_data();
-        contour_generator_ = QuadContourGenerator(X_data_, Y_data_, Z_data_,
-                                                  _corner_mask, nchunk_);
+        contour_generator_ =
+            QuadContourGenerator(X_data_, Y_data_, Z_data_, _corner_mask,
+                                 static_cast<long>(nchunk_));
     }
 
     std::string contours::set_variables_string() {
@@ -40,9 +42,8 @@ namespace matplot {
 
     std::string contours::plot_string() {
         make_sure_data_is_preprocessed();
-
-        double zmax_ = zmax();
-        double zmin_ = zmin();
+        // double zmax_ = zmax();
+        // double zmin_ = zmin();
         auto [min_it, max_it] =
             std::minmax_element(levels_.begin(), levels_.end());
         double contour_min_level = *min_it;
@@ -151,21 +152,23 @@ namespace matplot {
                     // it might be the other way around
                     // we need to check which is clockwise before deciding on
                     // that
-                    bool is_ll =
+                    const bool is_ll2 =
                         is_lower_level(line_index, segment_begin, segment_end);
-                    double segment_z_level = is_ll ? lower_levels[line_index]
-                                                   : upper_levels[line_index];
+                    const double segment_z_level2 =
+                        is_ll2 ? lower_levels[line_index]
+                               : upper_levels[line_index];
 
                     line_spec_.color(parent_->colormap_interpolation(
-                        segment_z_level, contour_min_level, contour_max_level));
-                    std::string ls =
+                        segment_z_level2, contour_min_level,
+                        contour_max_level));
+                    std::string ls2 =
                         " '-' with filledcurve " +
                         line_spec_.plot_string(
                             line_spec::style_to_plot::plot_line_only, false);
-                    ls = std::regex_replace(
-                        ls, std::regex(" linecolor rgb +[^ ]+ "),
+                    ls2 = std::regex_replace(
+                        ls2, std::regex(" linecolor rgb +[^ ]+ "),
                         " linecolor palette ");
-                    ss << ls;
+                    ss << ls2;
                 }
                 line_spec_.color(previous_color);
                 line_spec_.user_color(previous_color_manual);
@@ -410,7 +413,7 @@ namespace matplot {
         _levels = levels_;
 
         // Extend minimum beyond zmin (for filled plots)
-        const bool log = parent_->z_axis().scale() == axis::axis_scale::log;
+        const bool log = parent_->z_axis().scale() == axis_type::axis_scale::log;
         if (extend_ == extend_option::both || extend_ == extend_option::min) {
             double lower = log ? 1e-250 : -1e250;
             _levels.insert(_levels.begin(), lower);
@@ -455,7 +458,7 @@ namespace matplot {
         if (zmin() == lowers[0]) {
             // Include minimum values in lowest interval
             // so we don't change levels_
-            if (parent_->z_axis().scale() == axis::axis_scale::log) {
+            if (parent_->z_axis().scale() == axis_type::axis_scale::log) {
                 lowers[0] = 0.99 * zmin();
             } else {
                 lowers[0] -= 1;
@@ -465,7 +468,7 @@ namespace matplot {
         return std::make_pair(lowers, uppers);
     }
 
-    std::string contours::legend_string(const std::string &title) {
+    std::string contours::legend_string(std::string_view title) {
         auto [min_level_it, max_level_it] =
             std::minmax_element(levels_.begin(), levels_.end());
         double zmax = *max_level_it;
@@ -1016,9 +1019,12 @@ namespace matplot {
                 } else {
                     // Skip the next nans separating parents and children
                     // to avoid extra useless empty lines in case there is
-                    // more than one nan
-                    while (is_separator(lines_[i].first[j + 1],
-                                        lines_[i].second[j + 1])) {
+                    // more than one nan (with out-of-bounds check if we
+                    // have a corner case then the lines_ has one or more
+                    // nans at end of the underlying storage)
+                    while (j + 1 < lines_[i].first.size() &&
+                           is_separator(lines_[i].first[j + 1],
+                           lines_[i].second[j + 1])) {
                         ++j;
                     }
                     // Include an empty line to indicate this polygon or line
@@ -1217,7 +1223,7 @@ namespace matplot {
         return axes_object::axes_category::two_dimensional;
     }
 
-    class contours &contours::line_style(const std::string &str) {
+    class contours &contours::line_style(std::string_view str) {
         line_spec_.parse_string(str);
         touch();
         return *this;
@@ -1300,7 +1306,7 @@ namespace matplot {
         return *this;
     }
 
-    const float contours::font_size() const {
+    float contours::font_size() const {
         if (font_size_) {
             return *font_size_;
         } else {
@@ -1322,7 +1328,7 @@ namespace matplot {
         }
     }
 
-    class contours &contours::font(const std::string &font) {
+    class contours &contours::font(std::string_view font) {
         font_ = font;
         touch();
         return *this;
@@ -1330,7 +1336,7 @@ namespace matplot {
 
     const std::string &contours::font_weight() const { return font_weight_; }
 
-    class contours &contours::font_weight(const std::string &font_weight) {
+    class contours &contours::font_weight(std::string_view font_weight) {
         font_weight_ = font_weight;
         touch();
         return *this;
@@ -1344,7 +1350,7 @@ namespace matplot {
         return *this;
     }
 
-    class contours &contours::font_color(const std::string &fc) {
+    class contours &contours::font_color(std::string_view fc) {
         font_color(to_array(fc));
         return *this;
     }
@@ -1380,8 +1386,7 @@ namespace matplot {
     }
 
     void square_trace(
-        size_t start_i, size_t start_j, const vector_2d &X, const vector_2d &Y,
-        const vector_2d &Z, double level,
+        size_t start_i, size_t start_j, const vector_2d &Z, double level,
         std::unordered_set<std::pair<size_t, size_t>, pair_hash<size_t, size_t>>
             &quadrants_visited,
         std::vector<std::pair<size_t, size_t>> &boundary_quadrants) {
@@ -1409,11 +1414,14 @@ namespace matplot {
             return std::make_pair<int, int>(position.first + direction.second,
                                             position.second + direction.first);
         };
-        auto undo_direction = [](std::pair<int, int> position,
-                                 const std::pair<int, int> &direction) {
-            return std::make_pair<int, int>(position.first - direction.second,
-                                            position.second - direction.first);
-        };
+        //        auto undo_direction = [](std::pair<int, int> position,
+        //                                 const std::pair<int, int> &direction)
+        //                                 {
+        //            return std::make_pair<int, int>(position.first -
+        //            direction.second,
+        //                                            position.second -
+        //                                            direction.first);
+        //        };
 
         // Change direction
         // The quadrant rows go from n1-1 to 1.
@@ -1449,16 +1457,18 @@ namespace matplot {
         auto current_quadrant = apply_direction(start, direction);
         while (current_quadrant != start) {
             // Check if current_quadrant point is inside the boundaries
-            bool inside_boundaries = current_quadrant.first <= n_rows - 1 &&
-                                     current_quadrant.first >= 1 &&
-                                     current_quadrant.second >= 0 &&
-                                     current_quadrant.second <= n_cols - 2;
+            bool inside_boundaries =
+                current_quadrant.first <= static_cast<int>(n_rows) - 1 &&
+                current_quadrant.first >= 1 && current_quadrant.second >= 0 &&
+                current_quadrant.second <= static_cast<int>(n_cols) - 2;
 
             // Check if point is an inflection point
             bool is_inflection_point = false;
             if (inside_boundaries) {
                 // Mark points we visited
-                quadrants_visited.insert(current_quadrant);
+                quadrants_visited.insert(std::make_pair<size_t, size_t>(
+                    static_cast<size_t>(current_quadrant.first),
+                    static_cast<size_t>(current_quadrant.second)));
 
                 // Get the quadrant indices
                 size_t i = current_quadrant.first;
@@ -1565,8 +1575,8 @@ namespace matplot {
             throw std::invalid_argument(
                 "Input z must be at least a (2, 2) shaped array");
         }
-        const size_t Ny = Z_data_.size();
-        const size_t Nx = Z_data_[0].size();
+        // const size_t Ny = Z_data_.size();
+        // const size_t Nx = Z_data_[0].size();
 
         if (Z_data_.size() != X_data_.size() ||
             Z_data_[0].size() < X_data_[0].size()) {
@@ -1580,8 +1590,8 @@ namespace matplot {
     }
 
     void contours::initialize_x_y() {
-        vector_1d x_1d = iota(1, Z_data_[0].size());
-        vector_1d y_1d = iota(1, Z_data_.size());
+        vector_1d x_1d = iota(1., static_cast<double>(Z_data_[0].size()));
+        vector_1d y_1d = iota(1., static_cast<double>(Z_data_.size()));
         std::tie(X_data_, Y_data_) = meshgrid(x_1d, y_1d);
     }
 
@@ -1620,6 +1630,11 @@ namespace matplot {
                             std::get<2>(cur_child) = j;
                             std::get<1>(cur).emplace_back(cur_child);
                         }
+                        // check for bounds before accessing value and
+                        // break while loop if fails.
+                        if (j + 1 >= filled_lines_[i].first.size()) {
+                            break;
+                        }
                         // Two nans in a row indicate a new parent
                         bool only_one_nan =
                             std::isfinite(filled_lines_[i].first[j + 1]);
@@ -1635,7 +1650,8 @@ namespace matplot {
                             line_segments_.emplace_back(cur);
                             std::get<1>(cur).clear();
                             ++j;
-                            while (!std::isfinite(filled_lines_[i].first[j])) {
+                            while (j < filled_lines_[i].first.size() &&
+                                   !std::isfinite(filled_lines_[i].first[j])) {
                                 ++j;
                             }
                             // start new parent

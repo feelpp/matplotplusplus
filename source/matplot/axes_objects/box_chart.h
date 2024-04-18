@@ -8,7 +8,7 @@
 #include <array>
 #include <cmath>
 #include <map>
-#include <matplot/core/figure.h>
+#include <matplot/core/figure_type.h>
 #include <matplot/util/concepts.h>
 #include <matplot/util/handle_types.h>
 
@@ -17,7 +17,7 @@
 #include <matplot/util/common.h>
 
 namespace matplot {
-    class axes;
+    class axes_type;
     class box_chart : public axes_object {
       public:
         enum class box_style_option {
@@ -27,8 +27,8 @@ namespace matplot {
         };
 
       public:
-        explicit box_chart(class axes *parent);
-        box_chart(class axes *parent, const std::vector<double> &y_data,
+        explicit box_chart(class axes_type *parent);
+        box_chart(class axes_type *parent, const std::vector<double> &y_data,
                   const std::vector<double> &groups = {});
         //        box_chart(class xlim* parent, const std::vector<double>& data,
         //        const std::vector<double>& edges, enum
@@ -42,9 +42,10 @@ namespace matplot {
         /// If we receive an axes_handle, we can convert it to a raw
         /// pointer because there is no ownership involved here
         template <class... Args>
-        box_chart(const axes_handle &parent, Args... args)
-            : box_chart(parent.get(), args...) {}
+        box_chart(const axes_handle &parent, Args&&... args)
+            : box_chart(parent.get(), std::forward<Args>(args)...) {}
 
+        virtual ~box_chart() = default;
       public /* xlim object virtual functions */:
         std::string set_variables_string() override;
         std::string plot_string() override;
@@ -125,7 +126,7 @@ namespace matplot {
         std::vector<double> x_data_;
 
         // color and style
-        color_array face_color_{{0.4, 0, 0, 0}};
+        color_array face_color_{{0.4f, 0, 0, 0}};
         bool manual_face_color_{false};
         color_array edge_color_{0, 0, 0, 0};
         float edge_width_{0.5};

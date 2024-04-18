@@ -5,12 +5,12 @@
 #include <algorithm>
 #include <cmath>
 #include <matplot/axes_objects/labels.h>
-#include <matplot/core/axes.h>
+#include <matplot/core/axes_type.h>
 #include <matplot/util/common.h>
 #include <sstream>
 
 namespace matplot {
-    labels::labels(class axes *parent, const std::vector<double> &x,
+    labels::labels(class axes_type *parent, const std::vector<double> &x,
                    const std::vector<double> &y,
                    const std::vector<std::string> &labels,
                    const std::vector<double> &colors,
@@ -203,7 +203,7 @@ namespace matplot {
 
     const std::string &labels::font() const { return font_; }
 
-    class labels &labels::font(const std::string &font) {
+    class labels &labels::font(std::string_view font) {
         font_ = font;
         touch();
         return *this;

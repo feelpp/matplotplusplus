@@ -8,36 +8,36 @@
 #include <matplot/axes_objects/line.h>
 
 namespace matplot {
-    class axes;
+    class axes_type;
 
     class error_bar : public line {
       public:
         enum class type { vertical, horizontal, both };
 
       public:
-        explicit error_bar(class axes *parent);
+        explicit error_bar(class axes_type *parent);
 
         /// Construct with x and y error
-        error_bar(class axes *parent, const std::vector<double> &x,
+        error_bar(class axes_type *parent, const std::vector<double> &x,
                   const std::vector<double> &y,
                   const std::vector<double> &y_neg_delta,
                   const std::vector<double> &y_pos_delta,
                   const std::vector<double> &x_neg_delta,
                   const std::vector<double> &x_pos_delta,
-                  const std::string &line_spec = "");
+                  std::string_view line_spec = "");
 
         /// Construct with y error only
-        error_bar(class axes *parent, const std::vector<double> &x_data,
+        error_bar(class axes_type *parent, const std::vector<double> &x_data,
                   const std::vector<double> &y_data,
                   const std::vector<double> &error,
                   error_bar::type type = error_bar::type::vertical,
-                  const std::string &line_spec = "");
+                  std::string_view line_spec = "");
 
         /// If we receive an axes_handle, we can convert it to a raw
         /// pointer because there is no ownership of the xlim
         template <class... Args>
-        error_bar(const axes_handle &parent, Args... args)
-            : error_bar(parent.get(), args...) {}
+        error_bar(const axes_handle &parent, Args&&... args)
+            : error_bar(parent.get(), std::forward<Args>(args)...) {}
 
       public /* override the plotting function for error_bar */:
         std::string set_variables_string() override;
@@ -80,7 +80,7 @@ namespace matplot {
         std::vector<double> y_positive_delta_{};
 
         bool filled_curve_{false};
-        float filled_curve_alpha_{0.90};
+        float filled_curve_alpha_{0.9f};
 
         float cap_size_{3.};
     };

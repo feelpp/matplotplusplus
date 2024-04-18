@@ -411,7 +411,8 @@ namespace matplot {
                     if (is_valid_point(point->x, point->y)) {
                         vertices_list.first.emplace_back(point->x);
                         vertices_list.second.emplace_back(point->y);
-                        codes_list.emplace_back((first ? MOVETO : LINETO));
+                        codes_list.emplace_back(static_cast<unsigned char>(
+                            first ? MOVETO : LINETO));
                         first = false;
                     }
                 }
@@ -425,7 +426,8 @@ namespace matplot {
                 if (!first) {
                     vertices_list.first.emplace_back(NaN);
                     vertices_list.second.emplace_back(NaN);
-                    codes_list.emplace_back(CLOSEPOLY);
+                    codes_list.emplace_back(
+                        static_cast<unsigned char>(CLOSEPOLY));
                 } else {
                     // We inserted no points
                     // ignore children (empty parents cannot have children)
@@ -450,8 +452,8 @@ namespace matplot {
                         if (is_valid_point(point->x, point->y)) {
                             vertices_list.first.emplace_back(point->x);
                             vertices_list.second.emplace_back(point->y);
-                            codes_list.emplace_back(
-                                (never_emplaced_anything ? MOVETO : LINETO));
+                            codes_list.emplace_back(static_cast<unsigned char>(
+                                (never_emplaced_anything ? MOVETO : LINETO)));
                             never_emplaced_anything = false;
                         }
                     }
@@ -465,7 +467,8 @@ namespace matplot {
                     if (!never_emplaced_anything) {
                         vertices_list.first.emplace_back(NaN);
                         vertices_list.second.emplace_back(NaN);
-                        codes_list.emplace_back(CLOSEPOLY);
+                        codes_list.emplace_back(
+                            static_cast<unsigned char>(CLOSEPOLY));
                     }
 
                     // To indicate the parent can be deleted.
@@ -477,7 +480,7 @@ namespace matplot {
                 // and that the next polygon is another parent
                 vertices_list.first.emplace_back(NaN);
                 vertices_list.second.emplace_back(NaN);
-                codes_list.emplace_back(CLOSEPOLY);
+                codes_list.emplace_back(static_cast<unsigned char>(CLOSEPOLY));
 
                 delete *line_it;
                 *line_it = 0;
@@ -1185,13 +1188,16 @@ namespace matplot {
 
     XY QuadContourGenerator::get_point_xy(long point) const {
         assert(point >= 0 && point < _n && "Point index out of bounds.");
-        return XY(_x[0].data()[static_cast<size_t>(point)],
-                  _y[0].data()[static_cast<size_t>(point)]);
+        return XY(vector_2d_view::get_element_from_offset(
+                      _x, static_cast<size_t>(point)),
+                  vector_2d_view::get_element_from_offset(
+                      _y, static_cast<size_t>(point)));
     }
 
     const double &QuadContourGenerator::get_point_z(long point) const {
         assert(point >= 0 && point < _n && "Point index out of bounds.");
-        return _z[0].data()[static_cast<size_t>(point)];
+        return vector_2d_view::get_element_from_offset(
+            _z, static_cast<size_t>(point));
     }
 
     Edge
@@ -1302,9 +1308,10 @@ namespace matplot {
             (_corner_mask
                  ? MASK_EXISTS | MASK_BOUNDARY_S | MASK_BOUNDARY_W
                  : MASK_EXISTS_QUAD | MASK_BOUNDARY_S | MASK_BOUNDARY_W);
-
+        auto z_view = vector_2d_view::from_vector_2d(_z);
         if (two_levels) {
-            const double *z_ptr = _z[0].data();
+
+            auto z_ptr = z_view.begin();
             for (long quad = 0; quad < _n; ++quad, ++z_ptr) {
                 _cache[quad] &= keep_mask;
                 if (*z_ptr > upper_level)
@@ -1313,7 +1320,7 @@ namespace matplot {
                     _cache[quad] |= MASK_Z_LEVEL_1;
             }
         } else {
-            const double *z_ptr = _z[0].data();
+            auto z_ptr = z_view.begin();
             for (long quad = 0; quad < _n; ++quad, ++z_ptr) {
                 _cache[quad] &= keep_mask;
                 if (*z_ptr > lower_level)
@@ -1810,8 +1817,7 @@ namespace matplot {
             std::cout << " CORNER=" << EXISTS_SW_CORNER(quad)
                       << EXISTS_SE_CORNER(quad) << EXISTS_NW_CORNER(quad)
                       << EXISTS_NE_CORNER(quad);
-        std::cout << " BNDY=" << (BOUNDARY_S(quad) > 0)
-                  << (BOUNDARY_W(quad) > 0);
+        std::cout << " BNDY=" << BOUNDARY_S(quad) << BOUNDARY_W(quad);
         if (!grid_only) {
             std::cout << " Z=" << Z_LEVEL(quad) << " SAD=" << SADDLE(quad, 1)
                       << SADDLE(quad, 2) << " LEFT=" << SADDLE_LEFT(quad, 1)
@@ -1954,13 +1960,15 @@ namespace matplot {
 
     std::vector<contour_line_type> contourc(const vector_2d &z,
                                             const vector_1d &levels) {
-        auto [x, y] = meshgrid(iota(1, 1, z[0].size()), iota(1, 1, z.size()));
+        auto [x, y] = meshgrid(iota(1., 1., static_cast<double>(z[0].size())),
+                               iota(1., 1., static_cast<double>(z.size())));
         return contourc(x, y, z, levels);
     }
 
     std::vector<contour_line_type> contourc(const vector_2d &z,
                                             size_t n_levels) {
-        auto [x, y] = meshgrid(iota(1, 1, z[0].size()), iota(1, 1, z.size()));
+        auto [x, y] = meshgrid(iota(1., 1., static_cast<double>(z[0].size())),
+                               iota(1., 1., static_cast<double>(z.size())));
         return contourc(x, y, z, n_levels);
     }
 

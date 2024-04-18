@@ -11,8 +11,8 @@ int main() {
 
     auto [X, Y] = meshgrid(iota(-5, 1., 5), iota(-5, .1, 5));
     auto Z = transform(X, Y, rastrigin);
-    ribbon(X, Y, Z)->face_alpha(0.8);
+    ribbon(X, Y, Z)->face_alpha(0.8f);
 
-    wait();
+    show();
     return 0;
 }

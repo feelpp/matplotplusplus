@@ -24,7 +24,7 @@ namespace matplot {
 
     std::string to_string(matplot::color c);
 
-    matplot::color string_to_color(const std::string &s);
+    matplot::color string_to_color(std::string_view s);
 
     matplot::color char_to_color(char c);
 
@@ -33,14 +33,14 @@ namespace matplot {
     std::array<float, 4> to_array(matplot::color c);
 
     template <class T> std::array<float, 4> to_array(std::vector<T> c) {
-        std::array<float, 4> r;
+        std::array<float, 4> r{0.f, 0.f, 0.f, 0.f};
         if (c.size() == 1) {
-            r[0] = 0;
+            r[0] = 0.f;
             r[1] = static_cast<float>(c[0]);
             r[2] = static_cast<float>(c[0]);
             r[3] = static_cast<float>(c[0]);
         } else if (c.size() == 3) {
-            r[0] = 0;
+            r[0] = 0.f;
             r[1] = static_cast<float>(c[0]);
             r[2] = static_cast<float>(c[1]);
             r[3] = static_cast<float>(c[2]);
@@ -53,35 +53,44 @@ namespace matplot {
         return r;
     }
 
-    std::array<float, 4> to_array(const std::string &str_color);
+    std::array<float, 4> to_array(std::string_view str_color);
 
     std::string to_string(const std::array<float, 4> &c);
     std::string to_string(const std::array<float, 3> &c);
 
     constexpr std::array<float, 4> default_color(size_t index) {
         constexpr size_t num_default_colors = 7;
-        size_t color_index = index % 7;
+        size_t color_index = index % num_default_colors;
         switch (color_index) {
         case 0:
-            return {0, 0, 0.4470, 0.7410};
+            return {0, 0, 0.447f, 0.741f};
         case 1:
-            return {0, 0.8500, 0.3250, 0.0980};
+            return {0, 0.85f, 0.325f, 0.098f};
         case 2:
-            return {0, 0.9290, 0.6940, 0.1250};
+            return {0, 0.929f, 0.694f, 0.125f};
         case 3:
-            return {0, 0.4940, 0.1840, 0.5560};
+            return {0, 0.494f, 0.184f, 0.556f};
         case 4:
-            return {0, 0.4660, 0.6740, 0.1880};
+            return {0, 0.466f, 0.674f, 0.188f};
         case 5:
-            return {0, 0.3010, 0.7450, 0.9330};
+            return {0, 0.301f, 0.745f, 0.933f};
         case 6:
-            return {0, 0.6350, 0.0780, 0.1840};
+            return {0, 0.635f, 0.078f, 0.184f};
         default:
-            return {0, 0.0, 0.0, 0.0};
+            return {};
         }
     }
 
     namespace palette {
+        /*
+         * \see
+         * - https://doi.org/10.1179%2Fcaj.1996.33.2.79
+         * - https://bids.github.io/colormap/
+         * - https://dx.doi.org/10.1371/journal.pone.0199239
+         * - https://dx.doi.org/10.5670/oceanog.2016.66
+         * - https://dx.doi.org/10.1071/aseg2015ab107
+         * - https://zenodo.org/record/4153113
+         */
         std::vector<std::vector<double>> accent(size_t n = 8);
         std::vector<std::vector<double>> blues(size_t n = 8);
         std::vector<std::vector<double>> brbg(size_t n = 8);

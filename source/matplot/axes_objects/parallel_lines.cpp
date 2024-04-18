@@ -4,18 +4,19 @@
 
 #include <iomanip>
 #include <matplot/axes_objects/parallel_lines.h>
-#include <matplot/core/axes.h>
+#include <matplot/core/axes_type.h>
 #include <matplot/util/common.h>
 #include <regex>
 #include <sstream>
 
 namespace matplot {
-    parallel_lines::parallel_lines(class axes *parent) : axes_object(parent) {}
+    parallel_lines::parallel_lines(class axes_type *parent)
+        : axes_object(parent) {}
 
-    parallel_lines::parallel_lines(class axes *parent,
+    parallel_lines::parallel_lines(class axes_type *parent,
                                    const std::vector<std::vector<double>> &data,
-                                   const std::string &line_spec)
-        : axes_object(parent), data_(data), line_spec_(this, line_spec) {
+                                   std::string_view line_spec)
+        : axes_object(parent), line_spec_(this, line_spec), data_(data) {
         for (size_t i = 0; i < data.size(); ++i) {
             axis_.emplace_back(parent_, true);
         }
@@ -27,9 +28,8 @@ namespace matplot {
         // replace the previous background rectangle
         if (parent_->color() != parent_->parent()->color()) {
             res += "    unset object 2\n";
-            auto [min_x1, max_x1] =
-                std::minmax_element(data_[0].begin(), data_[0].end());
-            double r = *max_x1 - *min_x1;
+            // auto [min_x1, max_x1] = std::minmax_element(data_[0].begin(),
+            // data_[0].end()); double r = *max_x1 - *min_x1;
             res += "    set object 2 rectangle from 1,0 to " +
                    num2str(data_.size()) + ",1 behind fillcolor rgb \"" +
                    to_string(parent_->color()) +
@@ -121,7 +121,7 @@ namespace matplot {
         }
     }
 
-    std::string parallel_lines::legend_string(const std::string &title) {
+    std::string parallel_lines::legend_string(std::string_view title) {
         return " keyentry " +
                line_spec_.plot_string(
                    line_spec::style_to_plot::plot_line_only) +
@@ -279,14 +279,14 @@ namespace matplot {
         return *this;
     }
 
-    const std::vector<class axis> &parallel_lines::axis() const {
+    const std::vector<class axis_type> &parallel_lines::axis() const {
         return axis_;
     }
 
-    std::vector<class axis> &parallel_lines::axis() { return axis_; }
+    std::vector<class axis_type> &parallel_lines::axis() { return axis_; }
 
     class parallel_lines &
-    parallel_lines::axis(const std::vector<class axis> &axis) {
+    parallel_lines::axis(const std::vector<class axis_type> &axis) {
         axis_ = axis;
         touch();
         return *this;

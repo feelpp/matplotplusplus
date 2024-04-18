@@ -6,7 +6,7 @@
 #define MATPLOTPLUSPLUS_SURFACE_H
 
 #include <array>
-#include <matplot/core/figure.h>
+#include <matplot/core/figure_type.h>
 #include <matplot/util/concepts.h>
 #include <matplot/util/handle_types.h>
 #include <optional>
@@ -16,19 +16,19 @@
 #include <matplot/util/common.h>
 
 namespace matplot {
-    class axes;
+    class axes_type;
 
     /// Surfaces might include data for contours but, if you only want contours,
     /// it's best to use the contour, contourf, fcontour functions to plot it in
     /// 2d
     class surface : public axes_object {
       public:
-        explicit surface(class axes *parent);
+        explicit surface(class axes_type *parent);
 
         /// Grid surface
-        surface(class axes *parent, const vector_2d &X, const vector_2d &Y,
+        surface(class axes_type *parent, const vector_2d &X, const vector_2d &Y,
                 const vector_2d &Z, const vector_2d &C,
-                const std::string &line_spec = "");
+                std::string_view line_spec = "");
 
         /// Parametric surface
         //        surface(class xlim* parent, const vector_1d& x, const
@@ -38,13 +38,14 @@ namespace matplot {
         /// If we receive an axes_handle, we can convert it to a raw
         /// pointer because there is no ownership involved here
         template <class... Args>
-        surface(const axes_handle &parent, Args... args)
-            : surface(parent.get(), args...) {}
+        surface(const axes_handle &parent, Args&&... args)
+            : surface(parent.get(), std::forward<Args>(args)...) {}
 
+        virtual ~surface() = default;
       public /* mandatory virtual functions */:
         std::string set_variables_string() override;
         std::string plot_string() override;
-        std::string legend_string(const std::string &title) override;
+        std::string legend_string(std::string_view title) override;
         std::string data_string() override;
         double xmax() override;
         double xmin() override;
@@ -53,7 +54,7 @@ namespace matplot {
         enum axes_object::axes_category axes_category() override;
 
       public /* getters and setters */:
-        class surface &line_style(const std::string &line_spec);
+        class surface &line_style(std::string_view line_spec);
 
         const matplot::line_spec &line_spec() const;
         matplot::line_spec &line_spec();
@@ -114,18 +115,18 @@ namespace matplot {
         bool contour_text() const;
         class surface &contour_text(bool contour_text);
 
-        const float font_size() const;
+        float font_size() const;
         class surface &font_size(const float &font_size);
 
         const std::string font() const;
-        class surface &font(const std::string &font);
+        class surface &font(std::string_view font);
 
         const std::string &font_weight() const;
-        class surface &font_weight(const std::string &font_weight);
+        class surface &font_weight(std::string_view font_weight);
 
         const color_array &font_color() const;
         class surface &font_color(const color_array &font_color);
-        class surface &font_color(const std::string &font_color);
+        class surface &font_color(std::string_view font_color);
 
         bool depthorder() const;
 
@@ -213,7 +214,7 @@ namespace matplot {
         size_t norm_{2};
         bool hidden3d_{false};
         bool depthorder_{false};
-        float face_alpha_{.95};
+        float face_alpha_{.95f};
         class line_spec line_spec_;
         bool lighting_{false};
         float primary_{-1.};

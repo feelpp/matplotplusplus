@@ -11,13 +11,13 @@
 #include <matplot/util/contourc.h>
 #include <matplot/util/handle_types.h>
 
-#include <matplot/core/figure.h>
+#include <matplot/core/figure_type.h>
 
 #include <matplot/core/axes_object.h>
 #include <matplot/core/line_spec.h>
 
 namespace matplot {
-    class axes;
+    class axes_type;
 
     /// Create and store a set of contour lines or filled regions.
     /// We have a class just for contours instead of using the
@@ -50,22 +50,25 @@ namespace matplot {
         /// \param Y Y grid
         /// \param Z Z heights
         /// \param line_spec Line properties
-        contours(class axes *parent, const vector_2d &X, const vector_2d &Y,
-                 const vector_2d &Z, const std::string &line_spec = "");
+        contours(class axes_type *parent, const vector_2d &X,
+                 const vector_2d &Y, const vector_2d &Z,
+                 std::string_view line_spec = "");
 
-        contours(class axes *parent, const vector_2d &Z,
-                 const std::string &line_spec = "");
+        contours(class axes_type *parent, const vector_2d &Z,
+                 std::string_view line_spec = "");
 
         /// If we receive an axes_handle, we can convert it to a raw
         /// pointer because there is no ownership involved here
         template <class... Args>
-        contours(const axes_handle &parent, Args... args)
-            : contours(parent.get(), args...) {}
+        contours(const axes_handle &parent, Args &&... args)
+            : contours(parent.get(), std::forward<Args>(args)...) {}
+
+        virtual ~contours() = default;
 
       public /* mandatory virtual functions */:
         std::string set_variables_string() override;
         std::string plot_string() override;
-        std::string legend_string(const std::string &title) override;
+        std::string legend_string(std::string_view title) override;
         std::string data_string() override;
         bool requires_colormap() override;
         double xmax() override;
@@ -75,7 +78,7 @@ namespace matplot {
         enum axes_object::axes_category axes_category() override;
 
       public /* getters and setters */:
-        class contours &line_style(const std::string &line_spec);
+        class contours &line_style(std::string_view line_spec);
 
         const matplot::line_spec &line_spec() const;
         matplot::line_spec &line_spec();
@@ -102,18 +105,18 @@ namespace matplot {
         bool contour_text() const;
         class contours &contour_text(bool contour_text);
 
-        const float font_size() const;
+        float font_size() const;
         class contours &font_size(const float &font_size);
 
         const std::string font() const;
-        class contours &font(const std::string &font);
+        class contours &font(std::string_view font);
 
         const std::string &font_weight() const;
-        class contours &font_weight(const std::string &font_weight);
+        class contours &font_weight(std::string_view font_weight);
 
         const color_array &font_color() const;
         class contours &font_color(const color_array &font_color);
-        class contours &font_color(const std::string &font_color);
+        class contours &font_color(std::string_view font_color);
 
         bool visible() const;
         class contours &visible(bool visible);

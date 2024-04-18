@@ -8,7 +8,7 @@
 #include <array>
 #include <cmath>
 #include <map>
-#include <matplot/core/figure.h>
+#include <matplot/core/figure_type.h>
 #include <matplot/util/concepts.h>
 #include <matplot/util/handle_types.h>
 
@@ -17,27 +17,30 @@
 #include <matplot/util/common.h>
 
 namespace matplot {
-    class axes;
+    class axes_type;
     class bars : public axes_object {
       public:
-        explicit bars(class axes *parent);
-        bars(class axes *parent, const std::vector<double> &y);
-        bars(class axes *parent, const std::vector<std::vector<double>> &Y);
-        bars(class axes *parent, const std::vector<double> &x,
+        explicit bars(class axes_type *parent);
+        bars(class axes_type *parent, const std::vector<double> &y);
+        bars(class axes_type *parent,
+             const std::vector<std::vector<double>> &Y);
+        bars(class axes_type *parent, const std::vector<double> &x,
              const std::vector<double> &y);
-        bars(class axes *parent, const std::vector<double> &x,
+        bars(class axes_type *parent, const std::vector<double> &x,
              const std::vector<std::vector<double>> &Y);
 
         /// If we receive an axes_handle, we can convert it to a raw
         /// pointer because there is no ownership involved here
         template <class... Args>
-        bars(const axes_handle &parent, Args... args)
-            : bars(parent.get(), args...) {}
+        bars(const axes_handle &parent, Args &&... args)
+            : bars(parent.get(), std::forward<Args>(args)...) {}
+
+        virtual ~bars() = default;
 
       public /* xlim object virtual functions */:
         // std::string set_variables_string() override;
         std::string plot_string() override;
-        std::string legend_string(const std::string &title) override;
+        std::string legend_string(std::string_view title) override;
         std::string data_string() override;
         // std::string unset_variables_string() override;
         bool requires_colormap() override;
@@ -58,7 +61,7 @@ namespace matplot {
         class bars &face_color(const color_array &face_color);
         class bars &face_color(const std::array<float, 3> &face_color);
         class bars &face_color(std::initializer_list<float> face_color);
-        class bars &face_color(const std::string &color);
+        class bars &face_color(std::string_view color);
 
         const std::vector<color_array> &face_colors() const;
         std::vector<color_array> &face_colors();
@@ -72,7 +75,7 @@ namespace matplot {
         class bars &edge_color(const color_array &edge_color);
         class bars &edge_color(const std::array<float, 3> &edge_color);
         class bars &edge_color(std::initializer_list<float> face_color);
-        class bars &edge_color(const std::string &edge_color);
+        class bars &edge_color(std::string_view edge_color);
 
         const line_spec &edge_style() const;
         class bars &edge_style(const line_spec &edge_style);
@@ -101,14 +104,14 @@ namespace matplot {
         std::vector<std::vector<double>> ys_;
 
         // color and style
-        std::vector<color_array> face_colors_{{0.4, 0, 0, 0}};
+        std::vector<color_array> face_colors_{{0.4f, 0, 0, 0}};
         bool manual_face_color_{false};
         color_array edge_color_{0, 0, 0, 0};
         line_spec edge_style_{"-"};
         float line_width_{0.5};
         bool vertical_orientation_{true};
-        float bar_width_{0.8};
-        float cluster_width_{0.8};
+        float bar_width_{0.8f};
+        float cluster_width_{0.8f};
 
         // True if visible
         bool visible_{true};

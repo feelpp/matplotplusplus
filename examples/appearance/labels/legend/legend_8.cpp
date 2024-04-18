@@ -1,4 +1,3 @@
-#include <cmath>
 #include <matplot/matplot.h>
 
 int main() {
@@ -13,6 +12,6 @@ int main() {
     lgd->text_color("blue");
     lgd->num_columns(2);
 
-    wait();
+    show();
     return 0;
 }

@@ -7,35 +7,39 @@
 
 #include <array>
 #include <matplot/core/axes_object.h>
-#include <matplot/core/figure.h>
+#include <matplot/core/figure_type.h>
 #include <matplot/core/line_spec.h>
 #include <matplot/util/concepts.h>
 #include <matplot/util/handle_types.h>
 
 namespace matplot {
-    class axes;
+    class axes_type;
     class line : public axes_object {
       public:
-        explicit line(class axes *parent);
-        line(class axes *parent, const std::vector<double> &y_data,
-             const std::string &line_spec = "");
-        line(class axes *parent, const std::vector<double> &x_data,
+        explicit line(class axes_type *parent);
+        line(class axes_type *parent, const std::vector<double> &y_data,
+             std::string_view line_spec = "");
+        line(class axes_type *parent, const std::vector<double> &x_data,
              const std::vector<double> &y_data,
-             const std::string &line_spec = "");
-        line(class axes *parent, const std::vector<double> &x_data,
+             std::string_view line_spec = "");
+        line(class axes_type *parent, const std::vector<double> &x_data,
              const std::vector<double> &y_data,
              const std::vector<double> &z_data,
-             const std::string &line_spec = "");
+             std::string_view line_spec = "");
 
         /// If we receive an axes_handle, we can convert it to a raw
         /// pointer because there is no ownership involved here
         template <class... Args>
-        line(const axes_handle &parent, Args... args)
-            : line(parent.get(), args...) {}
+        line(const axes_handle &parent, Args &&... args)
+            : line(parent.get(), std::forward<Args>(args)...) {}
+
+        virtual ~line() = default;
 
       public /* mandatory virtual functions */:
+        void run_draw_commands() override;
+
         std::string plot_string() override;
-        std::string legend_string(const std::string &title) override;
+        std::string legend_string(std::string_view title) override;
         std::string data_string() override;
         double xmax() override;
         double xmin() override;
@@ -45,7 +49,7 @@ namespace matplot {
         bool requires_colormap() override;
 
       public /* getters and setters */:
-        class line &line_style(const std::string &line_spec);
+        class line &line_style(std::string_view line_spec);
 
         const matplot::line_spec &line_spec() const;
         matplot::line_spec &line_spec();

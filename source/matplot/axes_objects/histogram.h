@@ -9,14 +9,14 @@
 #include <cmath>
 #include <map>
 #include <matplot/core/axes_object.h>
-#include <matplot/core/figure.h>
+#include <matplot/core/figure_type.h>
 #include <matplot/core/line_spec.h>
 #include <matplot/util/common.h>
 #include <matplot/util/concepts.h>
 #include <matplot/util/handle_types.h>
 
 namespace matplot {
-    class axes;
+    class axes_type;
     class histogram : public axes_object {
       public:
         // source code in 'edit histcount'
@@ -42,16 +42,16 @@ namespace matplot {
         };
 
       public:
-        explicit histogram(class axes *parent);
-        histogram(class axes *parent, const std::vector<double> &data,
+        explicit histogram(class axes_type *parent);
+        histogram(class axes_type *parent, const std::vector<double> &data,
                   size_t n_bins,
                   enum histogram::normalization normalization_alg =
                       histogram::normalization::count);
-        histogram(class axes *parent, const std::vector<double> &data,
+        histogram(class axes_type *parent, const std::vector<double> &data,
                   const std::vector<double> &edges,
                   enum histogram::normalization normalization_alg =
                       histogram::normalization::count);
-        histogram(class axes *parent, const std::vector<double> &data,
+        histogram(class axes_type *parent, const std::vector<double> &data,
                   binning_algorithm algorithm = binning_algorithm::automatic,
                   histogram::normalization normalization_alg =
                       histogram::normalization::count);
@@ -59,13 +59,14 @@ namespace matplot {
         /// If we receive an axes_handle, we can convert it to a raw
         /// pointer because there is no ownership involved here
         template <class... Args>
-        histogram(const axes_handle &parent, Args... args)
-            : histogram(parent.get(), args...) {}
+        histogram(const axes_handle &parent, Args&&... args)
+            : histogram(parent.get(), std::forward<Args>(args)...) {}
 
+        virtual ~histogram() = default;
       public /* xlim object virtual functions */:
         // std::string set_variables_string() override;
         std::string plot_string() override;
-        std::string legend_string(const std::string &title) override;
+        std::string legend_string(std::string_view title) override;
         std::string data_string() override;
         // std::string unset_variables_string() override;
         double xmax() override;
@@ -140,7 +141,7 @@ namespace matplot {
         const color_array &face_color() const;
         class histogram &face_color(const color_array &face_color);
         class histogram &face_color(std::initializer_list<float> face_color);
-        class histogram &face_color(const std::string &color);
+        class histogram &face_color(std::string_view color);
 
         class histogram &face_alpha(float alpha);
         class histogram &edge_alpha(float alpha);
@@ -151,7 +152,7 @@ namespace matplot {
         const color_array &edge_color() const;
         class histogram &edge_color(const color_array &edge_color);
         class histogram &edge_color(std::initializer_list<float> face_color);
-        class histogram &edge_color(const std::string &edge_color);
+        class histogram &edge_color(std::string_view edge_color);
 
         const line_spec &edge_style() const;
         class histogram &edge_style(const line_spec &edge_style);
@@ -247,7 +248,7 @@ namespace matplot {
         enum normalization normalization_ { normalization::count };
 
         // color and style
-        color_array face_color_{0.4, 0, 0, 0};
+        color_array face_color_{0.4f, 0, 0, 0};
         bool manual_face_color_{false};
         color_array edge_color_{0, 0, 0, 0};
         bool manual_edge_color_{false};

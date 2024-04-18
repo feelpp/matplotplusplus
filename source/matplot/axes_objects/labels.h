@@ -5,16 +5,16 @@
 #ifndef MATPLOTPLUSPLUS_LABELS_H
 #define MATPLOTPLUSPLUS_LABELS_H
 
-#include <matplot/core/figure.h>
+#include <matplot/core/figure_type.h>
 
 #include <matplot/core/axes_object.h>
-#include <matplot/core/axis.h>
+#include <matplot/core/axis_type.h>
 #include <matplot/core/line_spec.h>
 #include <matplot/util/concepts.h>
 #include <matplot/util/handle_types.h>
 
 namespace matplot {
-    class axes;
+    class axes_type;
     class labels : public axes_object {
       public:
         enum alignment { left, right, center, automatic };
@@ -24,8 +24,8 @@ namespace matplot {
         static constexpr double height_factor = 0.08;
 
       public:
-        explicit labels(class axes *parent);
-        labels(class axes *parent, const std::vector<double> &x,
+        explicit labels(class axes_type *parent);
+        labels(class axes_type *parent, const std::vector<double> &x,
                const std::vector<double> &y,
                const std::vector<std::string> &labels = {},
                const std::vector<double> &color = {},
@@ -34,9 +34,10 @@ namespace matplot {
         /// If we receive an axes_handle, we can convert it to a raw
         /// pointer because there is no ownership involved here
         template <class... Args>
-        labels(const axes_handle &parent, Args... args)
-            : labels(parent.get(), args...) {}
+        labels(const axes_handle &parent, Args&&... args)
+            : labels(parent.get(), std::forward<Args>(args)...) {}
 
+        virtual ~labels() = default;
       public /* mandatory virtual functions */:
         std::string set_variables_string() override;
         std::string plot_string() override;
@@ -85,7 +86,7 @@ namespace matplot {
         }
 
         const std::string &font() const;
-        class labels &font(const std::string &font);
+        class labels &font(std::string_view font);
 
         float font_size() const;
         class labels &font_size(float font_size);

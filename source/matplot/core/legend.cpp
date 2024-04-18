@@ -2,18 +2,20 @@
 // Created by Alan Freitas on 10/07/20.
 //
 
-#include <matplot/core/axes.h>
+#include <matplot/core/axes_type.h>
 #include <matplot/core/legend.h>
 #include <matplot/util/common.h>
 
 namespace matplot {
-    legend::legend(class axes *parent) : legend(parent, {}) {}
+    legend::legend(class axes_type *parent) : legend(parent, {}) {}
 
-    legend::legend(class axes *parent, std::initializer_list<std::string> names)
+    legend::legend(class axes_type *parent,
+                   std::initializer_list<std::string> names)
         : legend(parent, std::vector(names)) {}
 
-    legend::legend(class axes *parent, const std::vector<std::string> &names)
-        : parent_(parent), strings_(names) {
+    legend::legend(class axes_type *parent,
+                   const std::vector<std::string> &names)
+        : strings_(names), parent_(parent) {
         if (names.empty() && !parent_->children().empty()) {
             for (size_t i = 0; i < parent_->children().size(); ++i) {
                 strings_.emplace_back("data" + num2str(i + 1));
@@ -138,6 +140,7 @@ namespace matplot {
             }
             break;
         }
+        throw std::logic_error("legend::location: could not find the legend location");
     }
 
     void legend::location(general_alignment alignment) {
@@ -238,14 +241,14 @@ namespace matplot {
 
     const std::string &legend::title() const { return title_; }
 
-    void legend::title(const std::string &title) {
+    void legend::title(std::string_view title) {
         title_ = title;
         touch();
     }
 
     const std::string &legend::font_name() const { return font_name_; }
 
-    void legend::font_name(const std::string &font_name) {
+    void legend::font_name(std::string_view font_name) {
         font_name_ = font_name;
         touch();
     }
@@ -259,14 +262,14 @@ namespace matplot {
 
     const std::string &legend::font_angle() const { return font_angle_; }
 
-    void legend::font_angle(const std::string &font_angle) {
+    void legend::font_angle(std::string_view font_angle) {
         font_angle_ = font_angle;
         touch();
     }
 
     const std::string &legend::font_weight() const { return font_weight_; }
 
-    void legend::font_weight(const std::string &font_weight) {
+    void legend::font_weight(std::string_view font_weight) {
         font_weight_ = font_weight;
         touch();
     }

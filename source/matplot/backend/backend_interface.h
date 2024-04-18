@@ -10,6 +10,7 @@
 #include <vector>
 
 namespace matplot {
+    class figure_type;
     namespace backend {
         /// Inherit from this class to create a new backend
         /// - Interactive backends show the plots on a window
@@ -86,10 +87,6 @@ namespace matplot {
             /// \brief Set height
             virtual void height(unsigned int new_height);
 
-            /// \brief Background color in RGBA
-            virtual const std::array<float, 4> &background_color();
-            virtual void background_color(const std::array<float, 4> &RGBA);
-
             /// \brief Get the current position_x (for interactive backends)
             /// The user might have changed the image position_x manually.
             /// Matplot++ needs to be aware of that.
@@ -105,8 +102,17 @@ namespace matplot {
             /// \brief Set position_y (for interactive backends)
             virtual void position_y(unsigned int new_position_y);
 
+            /// \brief Set window title
+            virtual void window_title(const std::string& title);
+
+            /// \brief Get window title
+            virtual std::string window_title();
+
             /// \brief Tell the backend we are about to draw a new image
-            virtual void new_frame();
+            /// The backend might reject starting this new image
+            /// For instance, the user already closed the window
+            /// and there's no point in feeding commands to the backend
+            virtual bool new_frame();
 
             /// \brief Tell the backend this new image is over
             /// The backend is free to plot whatever it's been
@@ -117,7 +123,12 @@ namespace matplot {
             /// \brief Tell the backend to wait for user interaction
             /// Until then, the backend should block execution if possible
             /// Figures use this in the show function
-            virtual void wait();
+            virtual void show(matplot::figure_type *);
+
+            /// \brief True if the user requested to close the window
+            /// This function allows the backend to send a signal
+            /// indicating the user has asked to close the window
+            virtual bool should_close();
 
             /// \brief True if the backend supports fonts
             /// We can avoid some commands if it doesn't
@@ -131,6 +142,14 @@ namespace matplot {
             /// https://github.com/matplotlib/matplotlib/blob/master/src/_backend_agg.h
             /// \see https://github.com/ocornut/imgui/tree/master/examples
           public:
+            /// \brief Draws background on the image
+            virtual void draw_background(const std::array<float, 4> &color);
+
+            /// \brief Draws rectangle on the image
+            virtual void draw_rectangle(const double x1, const double x2,
+                                        const double y1, const double y2,
+                                        const std::array<float, 4> &color);
+
             /// \brief Draw a path on the image
             /// Many backends will require the path to be floats
             /// but Matplot++ words with doubles, so it's up to
@@ -138,7 +157,7 @@ namespace matplot {
             /// it seems more efficient
             virtual void draw_path(const std::vector<double> &x,
                                    const std::vector<double> &y,
-                                   const std::vector<double> &z = {});
+                                   const std::array<float, 4> &color);
 
             /// \brief Draw markers on the image
             virtual void draw_markers(const std::vector<double> &x,

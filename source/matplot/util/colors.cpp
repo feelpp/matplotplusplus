@@ -6,6 +6,7 @@
 #include <cmath>
 #include <matplot/util/colors.h>
 #include <vector>
+#include <stdexcept>
 
 namespace matplot {
 
@@ -30,9 +31,10 @@ namespace matplot {
         case color::none:
             return "none";
         }
+        throw std::logic_error("colors::to_string: could not find a string for color");
     }
 
-    matplot::color string_to_color(const std::string &s) {
+    matplot::color string_to_color(std::string_view s) {
         if (s.size() == 1) {
             return char_to_color(s[0]);
         } else if (s == "blue") {
@@ -121,9 +123,10 @@ namespace matplot {
         case color::none:
             return {1, 0, 0, 0};
         }
+        throw std::logic_error("colors::to_array: could not find an array for color");
     }
 
-    std::array<float, 4> to_array(const std::string &s) {
+    std::array<float, 4> to_array(std::string_view s) {
         if (s.size() == 1) {
             return to_array(char_to_color(s[0]));
         } else if (s == "blue") {
@@ -198,40 +201,43 @@ namespace matplot {
                 // convert chars to float
                 uint8_t a = 0;
                 if (has_alpha) {
-                    uint8_t a1 = std::find(digits, digits + 16,
-                                           toupper(s[rgb_begin + 0])) -
-                                 digits;
-                    uint8_t a2 = std::find(digits, digits + 16,
-                                           toupper(s[rgb_begin + 1])) -
-                                 digits;
+                    uint8_t a1 = static_cast<uint8_t>(
+                        std::find(digits, digits + 16,
+                                  static_cast<uint8_t>(toupper(
+                                      static_cast<int>(s[rgb_begin + 0])))) -
+                        digits);
+                    uint8_t a2 = static_cast<uint8_t>(
+                        std::find(digits, digits + 16,
+                                  toupper(s[rgb_begin + 1])) -
+                        digits);
                     a = (a1 << 4u) | a2;
                 }
-                uint8_t r1 =
+                uint8_t r1 = static_cast<uint8_t>(
                     std::find(digits, digits + 16,
                               toupper(s[rgb_begin + 0 + alpha_extra])) -
-                    digits;
-                uint8_t r2 =
+                    digits);
+                uint8_t r2 = static_cast<uint8_t>(
                     std::find(digits, digits + 16,
                               toupper(s[rgb_begin + 1 + alpha_extra])) -
-                    digits;
+                    digits);
                 uint8_t r = (r1 << 4u) | r2;
-                uint8_t g1 =
+                uint8_t g1 = static_cast<uint8_t>(
                     std::find(digits, digits + 16,
                               toupper(s[rgb_begin + 2 + alpha_extra])) -
-                    digits;
-                uint8_t g2 =
+                    digits);
+                uint8_t g2 = static_cast<uint8_t>(
                     std::find(digits, digits + 16,
                               toupper(s[rgb_begin + 3 + alpha_extra])) -
-                    digits;
+                    digits);
                 uint8_t g = (g1 << 4u) | g2;
-                uint8_t b1 =
+                uint8_t b1 = static_cast<uint8_t>(
                     std::find(digits, digits + 16,
                               toupper(s[rgb_begin + 4 + alpha_extra])) -
-                    digits;
-                uint8_t b2 =
+                    digits);
+                uint8_t b2 = static_cast<uint8_t>(
                     std::find(digits, digits + 16,
                               toupper(s[rgb_begin + 5 + alpha_extra])) -
-                    digits;
+                    digits);
                 uint8_t b = (b1 << 4u) | b2;
                 result[0] = static_cast<float>(a) / 255;
                 result[1] = static_cast<float>(r) / 255;
@@ -302,7 +308,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -324,7 +331,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -342,7 +350,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -360,7 +369,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -382,7 +392,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -405,7 +416,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -427,7 +439,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -449,7 +462,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -468,7 +482,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -486,7 +501,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -508,7 +524,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -650,7 +667,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -686,7 +704,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -828,7 +847,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -850,7 +870,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -868,7 +889,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -886,7 +908,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -964,7 +987,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -982,7 +1006,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1000,7 +1025,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1018,7 +1044,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1160,7 +1187,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1178,7 +1206,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1200,7 +1229,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1222,7 +1252,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1244,7 +1275,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1262,7 +1294,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1280,7 +1313,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1298,7 +1332,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1320,7 +1355,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1342,7 +1378,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1360,7 +1397,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1378,7 +1416,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1396,7 +1435,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1415,7 +1455,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1437,7 +1478,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1455,7 +1497,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1473,7 +1516,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1491,7 +1535,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1633,7 +1678,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1651,7 +1697,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1673,7 +1720,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1695,7 +1743,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1717,7 +1766,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1739,7 +1789,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1756,7 +1807,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1792,7 +1844,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1828,7 +1881,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1906,7 +1960,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -1984,7 +2039,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -2062,7 +2118,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -2098,7 +2155,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -2176,7 +2234,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -2254,7 +2313,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -2332,7 +2392,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -2410,7 +2471,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -2488,7 +2550,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -2534,7 +2597,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -2612,7 +2676,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -2642,7 +2707,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -2669,7 +2735,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -2696,7 +2763,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -2774,7 +2842,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -2792,7 +2861,8 @@ namespace matplot {
             std::vector<std::vector<double>> result;
             for (size_t i = 0; i < n; ++i) {
                 std::array<float, 4> ac =
-                    colormap_interpolation(i, 0, n - 1, map);
+                    colormap_interpolation(static_cast<double>(i), 0.,
+                                           static_cast<double>(n - 1), map);
                 std::vector<double> vc = {ac[1], ac[2], ac[3]};
                 result.emplace_back(vc);
             }
@@ -2826,22 +2896,29 @@ namespace matplot {
         value /= max;
         value *= cm.size() - 1;
         // find positions in colormap we are interested
-        size_t first_position = std::max(0., floor(value));
-        size_t second_position = std::min(ceil(value), cm.size() - 1.);
+        size_t first_position = static_cast<size_t>(std::max(0., floor(value)));
+        size_t second_position =
+            static_cast<size_t>(std::min(ceil(value), cm.size() - 1.));
         // interpolation alpha
         double amount_first_color = 1 - (value - floor(value));
         double amount_second_color = value - floor(value);
         // create color
         auto &first_color = cm[first_position];
         auto &second_color = cm[second_position];
-        std::array<float, 4> result;
+        std::array<float, 4> result{};
         result[0] = 0.;
-        result[1] = amount_first_color * first_color[0] +
-                    amount_second_color * second_color[0];
-        result[2] = amount_first_color * first_color[1] +
-                    amount_second_color * second_color[1];
-        result[3] = amount_first_color * first_color[2] +
-                    amount_second_color * second_color[2];
+        result[1] = static_cast<float>(amount_first_color) *
+                        static_cast<float>(first_color[0]) +
+                    static_cast<float>(amount_second_color) *
+                        static_cast<float>(second_color[0]);
+        result[2] = static_cast<float>(amount_first_color) *
+                        static_cast<float>(first_color[1]) +
+                    static_cast<float>(amount_second_color) *
+                        static_cast<float>(second_color[1]);
+        result[3] = static_cast<float>(amount_first_color) *
+                        static_cast<float>(first_color[2]) +
+                    static_cast<float>(amount_second_color) *
+                        static_cast<float>(second_color[2]);
         return result;
     }
 

@@ -5,20 +5,20 @@
 #ifndef MATPLOTPLUSPLUS_CIRCLES_H
 #define MATPLOTPLUSPLUS_CIRCLES_H
 
-#include <matplot/core/figure.h>
+#include <matplot/core/figure_type.h>
 
 #include <matplot/core/axes_object.h>
-#include <matplot/core/axis.h>
+#include <matplot/core/axis_type.h>
 #include <matplot/core/line_spec.h>
 #include <matplot/util/concepts.h>
 #include <matplot/util/handle_types.h>
 
 namespace matplot {
-    class axes;
+    class axes_type;
     class circles : public axes_object {
       public:
-        explicit circles(class axes *parent);
-        circles(class axes *parent, const std::vector<double> &x,
+        explicit circles(class axes_type *parent);
+        circles(class axes_type *parent, const std::vector<double> &x,
                 const std::vector<double> &y,
                 const std::vector<double> &radius = {},
                 const std::vector<double> &start_angle = {},
@@ -28,13 +28,14 @@ namespace matplot {
         /// If we receive an axes_handle, we can convert it to a raw
         /// pointer because there is no ownership involved here
         template <class... Args>
-        circles(const axes_handle &parent, Args... args)
-            : circles(parent.get(), args...) {}
+        circles(const axes_handle &parent, Args&&... args)
+            : circles(parent.get(), std::forward<Args>(args)...) {}
 
+        virtual ~circles() = default;
       public /* mandatory virtual functions */:
         // std::string set_variables_string() override;
         std::string plot_string() override;
-        std::string legend_string(const std::string &title) override;
+        std::string legend_string(std::string_view title) override;
         std::string data_string() override;
         // std::string unset_variables_string() override;
         bool requires_colormap() override;

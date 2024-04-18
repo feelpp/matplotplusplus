@@ -8,7 +8,7 @@
 #include <matplot/axes_objects/line.h>
 
 namespace matplot {
-    class axes;
+    class axes_type;
 
     class stair : public line {
       public:
@@ -27,18 +27,18 @@ namespace matplot {
         };
 
       public:
-        explicit stair(class axes *parent);
-        stair(class axes *parent, const std::vector<double> &y_data,
-              const std::string &line_spec = "");
-        stair(class axes *parent, const std::vector<double> &x_data,
+        explicit stair(class axes_type *parent);
+        stair(class axes_type *parent, const std::vector<double> &y_data,
+              std::string_view line_spec = "");
+        stair(class axes_type *parent, const std::vector<double> &x_data,
               const std::vector<double> &y_data,
-              const std::string &line_spec = "");
+              std::string_view line_spec = "");
 
         /// If we receive an axes_handle, we can convert it to a raw
         /// pointer because there is no ownership involved here
         template <class... Args>
-        stair(const axes_handle &parent, Args... args)
-            : stair(parent.get(), args...) {}
+        stair(const axes_handle &parent, Args&&... args)
+            : stair(parent.get(), std::forward<Args>(args)...) {}
 
       public /* override the plotting function for stair */:
         std::string plot_string() override;

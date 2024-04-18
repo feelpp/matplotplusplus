@@ -6,20 +6,23 @@
 #define MATPLOTPLUSPLUS_COMMON_H
 
 #include <algorithm>
+#include <cctype>
 #include <complex>
 #include <functional>
 #include <map>
 #include <matplot/util/concepts.h>
+#include <numeric>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace matplot {
-    bool iequals(const std::string &str1, const std::string &str2);
-    bool is_true(const std::string &str);
-    bool is_false(const std::string &str);
+    bool iequals(std::string_view str1, std::string_view str2);
+    bool is_true(std::string_view str);
+    bool is_false(std::string_view str);
     std::string run_and_get_output(const std::string &command);
-    std::string escape(const std::string &label);
+    std::string escape(std::string_view label);
 
     inline void ltrim(std::string &s) {
         s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
@@ -49,7 +52,7 @@ namespace matplot {
 
     template <class T>
     std::string num2str(Arithmetic<T> num, const std::string &format) {
-        constexpr size_t max_buffer_size = 100;
+        constexpr int max_buffer_size = 100;
         char buffer[max_buffer_size];
         int cx = snprintf(buffer, max_buffer_size, format.c_str(), num);
         if (cx >= 0 && cx < max_buffer_size) {
@@ -59,8 +62,8 @@ namespace matplot {
         }
     }
 
-    template <class T = double> T str2num(const std::string &Text) {
-        std::istringstream ss(Text);
+    template <class T = double> T str2num(std::string_view text) {
+        std::istringstream ss((std::string(text)));
         T result;
         return ss >> result ? result : 0;
     }
@@ -138,7 +141,7 @@ namespace matplot {
 
     template <size_t N, class T>
     inline std::array<T, N> to_array(std::initializer_list<T> il) {
-        std::array<T, N> r;
+        std::array<T, N> r{};
         auto r_it = r.begin();
         auto il_it = il.begin();
         while (r_it != r.end() && il_it != il.end()) {
@@ -151,7 +154,7 @@ namespace matplot {
 
     template <size_t N, class T>
     inline std::array<T, N> to_array(const std::vector<T> &v) {
-        std::array<T, N> r;
+        std::array<T, N> r{};
         auto r_it = r.begin();
         auto v_it = v.begin();
         while (r_it != r.end() && v_it != v.end()) {
@@ -162,49 +165,54 @@ namespace matplot {
         return r;
     }
 
-    template <class T> std::vector<vector_2d> to_vector_3d(const T &v) {
-        std::vector<vector_2d> r(v.size());
-        size_t matrix_index = 0;
-        for (auto matrix_it = v.begin(); matrix_it != v.end();
-             ++matrix_it, ++matrix_index) {
-            r[matrix_index] = vector_2d(matrix_it->size());
-            size_t i = 0;
-            for (auto v_it = matrix_it->begin(); v_it != matrix_it->end();
-                 ++v_it, ++i) {
-                r[matrix_index][i] = vector_1d(v_it->size());
-                size_t j = 0;
-                for (auto vj_it = v_it->begin(); vj_it != v_it->end();
-                     ++vj_it, ++j) {
-                    r[matrix_index][i][j] = static_cast<double>(*vj_it);
-                }
-            }
-        }
-        return r;
+    namespace detail {
+        template <typename T, typename U>
+        using forward_or_copy =
+            std::conditional_t<std::is_same_v<T, U>, const U &, U>;
     }
 
-    template <class T, class DESTINATION_VALUE_TYPE = double>
-    vector_2d to_vector_2d(const T &v) {
-        std::vector<std::vector<DESTINATION_VALUE_TYPE>> r(v.size());
-        size_t i = 0;
-        for (auto v_it = v.begin(); v_it != v.end(); ++v_it, ++i) {
-            r[i] = std::vector<DESTINATION_VALUE_TYPE>(v_it->size());
-            size_t j = 0;
-            for (auto vj_it = v_it->begin(); vj_it != v_it->end();
-                 ++vj_it, ++j) {
-                r[i][j] = static_cast<DESTINATION_VALUE_TYPE>(*vj_it);
-            }
+    template <class T>
+    detail::forward_or_copy<T, vector_1d> to_vector_1d(const T &v) {
+        if constexpr (std::is_same_v<T, vector_1d>) {
+            return v;
+        } else {
+            using std::begin, std::end;
+            vector_1d r(v.size());
+            std::transform(v.begin(), v.end(), r.begin(), [](const auto &x) {
+                return static_cast<double>(x);
+            });
+            return r;
         }
-        return r;
     }
 
-    template <class T, class DESTINATION_VALUE_TYPE = double>
-    vector_1d to_vector_1d(const T &v) {
-        std::vector<DESTINATION_VALUE_TYPE> r(v.size());
-        size_t i = 0;
-        for (auto v_it = v.begin(); v_it != v.end(); ++v_it, ++i) {
-            r[i] = static_cast<DESTINATION_VALUE_TYPE>(*v_it);
+    template <class T>
+    detail::forward_or_copy<T, vector_2d> to_vector_2d(const T &v) {
+        if constexpr (std::is_same_v<T, vector_2d>) {
+            return v;
+        } else {
+            using std::begin, std::end;
+
+            vector_2d r(std::distance(begin(v), end(v)));
+            std::transform(
+                begin(v), end(v), r.begin(),
+                [](auto &&e) -> vector_1d { return to_vector_1d(e); });
+            return r;
         }
-        return r;
+    }
+
+    template <class T>
+    detail::forward_or_copy<T, std::vector<vector_2d>> to_vector_3d(const T &v) {
+        if constexpr (std::is_same_v<T, std::vector<vector_2d>>) {
+            return v;
+        } else {
+            using std::begin, std::end;
+
+            std::vector<vector_2d> r(std::distance(begin(v), end(v)));
+            std::transform(
+                begin(v), end(v), r.begin(),
+                [](auto &&e) -> vector_2d { return to_vector_2d(e); });
+            return r;
+        }
     }
 
     template <class T> inline T norm(const std::vector<T> &v) {
@@ -241,9 +249,9 @@ namespace matplot {
 
     template <class... Args>
     std::vector<double> concat(const std::vector<double> &a,
-                               const std::vector<double> &b, Args... args) {
+                               const std::vector<double> &b, Args&&... args) {
         std::vector<double> r = concat(a, b);
-        return concat(r, args...);
+        return concat(r, std::forward<Args>(args)...);
     }
 
     double truncate(double x, double lower_bound, double upper_bound);
@@ -254,9 +262,9 @@ namespace matplot {
     }
 
     template <class Arg1, class... Args, class TUPLE>
-    void reorder_parameter_pack_in_tuple(TUPLE &t, Arg1 x, Args... args) {
+    void reorder_parameter_pack_in_tuple(TUPLE &t, Arg1 x, Args&&... args) {
         std::get<Arg1>(t) = x;
-        reorder_parameter_pack_in_tuple(t, args...);
+        reorder_parameter_pack_in_tuple(t, std::forward<Args>(args)...);
     }
 
     std::string fileread(const std::string &filename);
@@ -338,7 +346,7 @@ namespace matplot {
     std::tuple<vector_2d, vector_2d, vector_2d> peaks(size_t N = 49);
 
     template <class T1, class T2> struct pair_hash {
-        std::size_t operator()(const std::pair<int, int> &p) const {
+        std::size_t operator()(const std::pair<T1, T2> &p) const {
             std::size_t h1 = std::hash<T1>()(p.first);
             std::size_t h2 = std::hash<T2>()(p.second);
             return h1 ^ h2;
@@ -418,19 +426,17 @@ namespace matplot {
     vector_2d transpose(const vector_2d &z);
 
     std::vector<std::string>
-    tokenize(const std::string &text,
-             std::string delimiters = " ',\n\r\t\".!?:");
+    tokenize(std::string_view text, std::string_view delimiters = " ',\n\r\t\".!?:");
 
     std::pair<std::vector<std::string>, std::vector<size_t>>
     wordcount(const std::vector<std::string> &tokens,
               const std::vector<std::string> &black_list,
-              const std::string &delimiters = " ',\n\r\t\".!?:;",
               size_t max_cloud_size = 100);
 
     std::pair<std::vector<std::string>, std::vector<size_t>>
-    wordcount(const std::string &text,
+    wordcount(std::string_view text,
               const std::vector<std::string> &black_list,
-              const std::string &delimiters = " ',\n\r\t\".!?:;",
+              std::string_view delimiters = " ',\n\r\t\".!?:;",
               size_t max_cloud_size = 100);
 
     // Distance from x to the next larger floating point number
@@ -498,6 +504,85 @@ namespace matplot {
                             bool separateExp = true, bool log = false);
 
     double distance(double x1, double y1, double x2, double y2);
+
+    /// \brief Simple read-only 2d view for vector_2d.
+    /// It could iterates over all vector's elements and get value using
+    /// only one index (offset).
+    class vector_2d_view {
+        using vector_2d = matplot::vector_2d;
+        const vector_2d &_vec;
+        const std::size_t _sz;
+
+        /// \brief Helper method for determining the whole array size.
+        /// Required for caching inner vector's size.
+        std::size_t calculate_size(const vector_2d &vec) {
+            return std::accumulate(
+                vec.begin(), vec.end(), (std::size_t)(0),
+                [](auto cnt, const auto &vec) { return cnt + vec.size(); });
+        }
+
+      public:
+        static const double &get_element_from_offset(const vector_2d &vec,
+                                                     std::size_t offset) {
+            std::size_t row_size = vec[0].size();
+            std::size_t cur_row = offset / row_size;
+            std::size_t cur_column = offset % row_size;
+            return vec[cur_row][cur_column];
+        }
+
+        static vector_2d_view from_vector_2d(const vector_2d &vec) {
+            return vector_2d_view(vec);
+        }
+        std::size_t size() const { return _sz; }
+        vector_2d_view(const vector_2d &vec)
+            : _vec(vec), _sz(calculate_size(vec)) {}
+
+        double operator()(std::size_t i, std::size_t j) {
+            return _vec.at(i).at(j);
+        }
+        friend class iterator;
+
+        class iterator {
+            vector_2d_view *const _vec;
+            std::size_t _row_offset;
+            std::size_t _col_offset;
+
+            static bool is_empty_iterator(const iterator &it) {
+                return it._vec == nullptr;
+            }
+            static bool is_end_iterator(const iterator &it) {
+                return is_empty_iterator(it) ||
+                       it._row_offset * it._col_offset >= it._vec->size();
+            }
+
+          public:
+            iterator(vector_2d_view *const vec)
+                : _vec(vec), _row_offset(0), _col_offset(0) {}
+
+            bool operator==(const iterator &it) const {
+                return is_end_iterator(it)
+                           ? is_end_iterator(*this)
+                           : it._vec == _vec && it._row_offset == _row_offset &&
+                                 it._col_offset == _col_offset;
+            }
+
+            auto operator*() const { return (*_vec)(_row_offset, _col_offset); }
+
+            iterator &operator++() {
+                _col_offset++;
+                if (_col_offset >= _vec->_vec.at(_row_offset).size()) {
+                    _col_offset = 0;
+                    _row_offset++;
+                }
+                return *this;
+            }
+
+            // iterator traits
+            using value_type = double;
+        };
+        iterator begin() { return iterator{this}; }
+        iterator end() { return iterator{nullptr}; }
+    };
 
 } // namespace matplot
 

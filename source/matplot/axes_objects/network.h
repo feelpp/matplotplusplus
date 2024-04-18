@@ -6,7 +6,7 @@
 #define MATPLOTPLUSPLUS_NETWORK_H
 
 #include <array>
-#include <matplot/core/figure.h>
+#include <matplot/core/figure_type.h>
 #include <matplot/util/concepts.h>
 #include <matplot/util/handle_types.h>
 
@@ -15,27 +15,28 @@
 #include <matplot/util/common.h>
 
 namespace matplot {
-    class axes;
+    class axes_type;
     class network : public axes_object {
       public:
         enum class layout { automatic, force, circle, kawai, random };
 
       public:
-        explicit network(class axes *parent);
-        network(class axes *parent,
+        explicit network(class axes_type *parent);
+        network(class axes_type *parent,
                 const std::vector<std::pair<size_t, size_t>> &edges,
                 const std::vector<double> &weights, size_t n_vertices,
-                const std::string &line_spec = "");
+                std::string_view line_spec = "");
 
         /// If we receive an axes_handle, we can convert it to a raw
         /// pointer because there is no ownership involved here
         template <class... Args>
-        network(const axes_handle &parent, Args... args)
-            : network(parent.get(), args...) {}
+        network(const axes_handle &parent, Args&&... args)
+            : network(parent.get(), std::forward<Args>(args)...) {}
 
+        virtual ~network() = default;
       public /* mandatory virtual functions */:
         std::string plot_string() override;
-        std::string legend_string(const std::string &title) override;
+        std::string legend_string(std::string_view title) override;
         std::string data_string() override;
         double xmax() override;
         double xmin() override;
@@ -44,7 +45,7 @@ namespace matplot {
         enum axes_object::axes_category axes_category() override;
 
       public /* getters and setters */:
-        class network &line_style(const std::string &line_spec);
+        class network &line_style(std::string_view line_spec);
 
         const matplot::line_spec &line_spec() const;
         matplot::line_spec &line_spec();

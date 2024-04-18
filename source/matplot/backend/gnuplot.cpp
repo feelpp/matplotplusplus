@@ -3,12 +3,17 @@
 //
 
 #include "gnuplot.h"
+#ifdef CXX_FILESYSTEM_IS_EXPERIMENTAL
+#include <experimental/filesystem>
+#else
 #include <filesystem>
+#endif
 #include <iostream>
 #include <matplot/util/common.h>
 #include <matplot/util/popen.h>
 #include <regex>
 #include <thread>
+#include <cstdlib>
 
 #ifdef MATPLOT_HAS_FBUFSIZE
 
@@ -31,17 +36,47 @@ namespace matplot::backend {
     bool gnuplot::consumes_gnuplot_commands() { return true; }
 
     gnuplot::gnuplot() {
-        // List terminal types
-        terminal_ = default_terminal_type();
+        // 1st option: terminal in GNUTERM environment variable
+#if defined(_MSC_VER) ||              \
+    defined(__CYGWIN__)
+        char *environment_terminal;
+        size_t len;
+        errno_t err = _dupenv_s(&environment_terminal, &len, "GNUTERM");
+        const bool env_found = err == 0 && environment_terminal != nullptr;
+#else
+        char *environment_terminal = std::getenv("GNUTERM");
+        bool env_found = environment_terminal != nullptr;
+#endif
+        if (env_found) {
+            if (terminal_is_available(environment_terminal)) {
+                terminal_ = environment_terminal;
+            }
+#if defined(_WIN32) || defined(_WIN64) || defined(__MINGW32__) || defined(__CYGWIN__)
+        } else if (terminal_is_available("wxt")) {
+            // 2nd option: wxt on windows, even if not default
+            terminal_ = "wxt";
+#endif
+        } else if (terminal_is_available("qt")) {
+            // 3rd option: qt
+            terminal_ = "qt";
+        } else {
+            // 4rd option: default terminal type
+            terminal_ = default_terminal_type();
+        }
+
         // Open the gnuplot pipe_
         if constexpr (windows_should_persist_by_default) {
             pipe_ = POPEN("gnuplot --persist", "w");
         } else {
             pipe_ = POPEN("gnuplot", "w");
         }
+
         // Check if everything is OK
         if (!pipe_) {
             std::cerr << "Opening the gnuplot pipe_ failed!" << std::endl;
+            std::cerr
+                << "Please install gnuplot 5.2.6+: http://www.gnuplot.info"
+                << std::endl;
         }
     }
 
@@ -54,6 +89,7 @@ namespace matplot::backend {
                                             time_since_last_flush);
             }
         }
+        flush_commands();
         run_command("exit");
         flush_commands();
         if (pipe_) {
@@ -67,6 +103,12 @@ namespace matplot::backend {
 
     const std::string &gnuplot::output_format() { return terminal_; }
 
+#ifdef STRING_VIEW_CONSTEXPR_BUG
+#define SV_CONSTEXPR
+#else
+#define SV_CONSTEXPR constexpr
+#endif
+
     bool gnuplot::output(const std::string &filename) {
         if (filename.empty()) {
             output_ = filename;
@@ -75,12 +117,17 @@ namespace matplot::backend {
         }
 
         // look at the extension
+#ifdef CXX_FILESYSTEM_IS_EXPERIMENTAL
+        namespace fs = std::experimental::filesystem;
+#else
         namespace fs = std::filesystem;
+#endif
+
         fs::path p{filename};
         std::string ext = p.extension().string();
 
         // check terminal for that extension
-        constexpr auto exts = extension_terminal();
+        SV_CONSTEXPR auto exts = extension_terminal();
         auto it = std::find_if(exts.begin(), exts.end(),
                                [&](const auto &e) { return e.first == ext; });
 
@@ -111,7 +158,7 @@ namespace matplot::backend {
         }
 
         // Check if file format is valid
-        constexpr auto exts = extension_terminal();
+        SV_CONSTEXPR auto exts = extension_terminal();
         auto it = std::find_if(exts.begin(), exts.end(), [&](const auto &e) {
             return e.second == format;
         });
@@ -123,7 +170,11 @@ namespace matplot::backend {
         }
 
         // Create file if it does not exist
+#ifdef CXX_FILESYSTEM_IS_EXPERIMENTAL
+        namespace fs = std::experimental::filesystem;
+#else
         namespace fs = std::filesystem;
+#endif
         fs::path p{filename};
         if (!p.parent_path().empty() && !fs::exists(p.parent_path())) {
             fs::create_directory(p.parent_path());
@@ -201,14 +252,9 @@ namespace matplot::backend {
         }
     }
 
-    void gnuplot::new_frame() {
-        if (!consumes_gnuplot_commands()) {
-            throw std::logic_error("There is no function to start new_frame in "
-                                   "the gnuplot backend yet");
-        } else {
-            throw std::logic_error("This backend has no function new_frame "
-                                   "because it is based on gnuplot commands");
-        }
+    bool gnuplot::new_frame() {
+        // always accept starting a new frame
+        return true;
     }
 
     bool gnuplot::render_data() { return flush_commands(); }
@@ -272,11 +318,16 @@ namespace matplot::backend {
         return terminal_type;
     }
 
-    std::pair<int, int> gnuplot::gnuplot_version() {
-        static std::pair<int, int> version{0, 0};
-        const bool dont_know_gnuplot_version =
-            version == std::pair<int, int>({0, 0});
-        if (dont_know_gnuplot_version) {
+    bool gnuplot::terminal_is_available(std::string_view term) {
+        std::string msg = run_and_get_output("gnuplot -e \"set terminal " + std::string(term.data()) + "\" 2>&1");
+        return msg.empty();
+    }
+
+    std::tuple<int, int, int> gnuplot::gnuplot_version() {
+        static std::tuple<int, int, int> version{0, 0, 0};
+        const bool dont_know_gnuplot_version_yet =
+            version == std::tuple<int, int, int>({0, 0, 0});
+        if (dont_know_gnuplot_version_yet) {
             std::string version_str =
                 run_and_get_output("gnuplot --version 2>&1");
             std::string version_major = std::regex_replace(
@@ -287,27 +338,37 @@ namespace matplot::backend {
                 version_str,
                 std::regex("[^]*gnuplot \\d+\\.(\\d+) patchlevel \\d+ *"),
                 "$1");
+            std::string version_patch = std::regex_replace(
+                version_str,
+                std::regex("[^]*gnuplot \\d+\\.\\d+ patchlevel (\\d+) *"),
+                "$1");
             try {
-                version.first = std::stoi(version_major);
+                std::get<0>(version) = std::stoi(version_major);
             } catch (...) {
-                version.first = 0;
+                std::get<0>(version) = 0;
             }
             try {
-                version.second = std::stoi(version_minor);
+                std::get<1>(version) = std::stoi(version_minor);
             } catch (...) {
-                version.second = 0;
+                std::get<1>(version) = 0;
+            }
+            try {
+                std::get<2>(version) = std::stoi(version_patch);
+            } catch (...) {
+                std::get<2>(version) = 0;
             }
             const bool still_dont_know_gnuplot_version =
-                version == std::pair<int, int>({0, 0});
+                version == std::tuple<int, int, int>({0, 0, 0});
             if (still_dont_know_gnuplot_version) {
-                version = std::pair<int, int>({5, 2});
+                // assume it's 5.2.6 by convention
+                version = std::tuple<int, int, int>({5, 2, 6});
             }
         }
         return version;
     }
 
     bool gnuplot::terminal_has_title_option(const std::string &t) {
-        constexpr std::string_view whitelist[] = {
+        SV_CONSTEXPR std::string_view whitelist[] = {
             "qt", "aqua", "caca", "canvas", "windows", "wxt", "x11"};
         return std::find(std::begin(whitelist), std::end(whitelist), t) !=
                std::end(whitelist);
@@ -317,7 +378,7 @@ namespace matplot::backend {
         // Terminals that have the size option *in the way we expect it to work*
         // This includes only the size option with {width, height} and not
         // the size option for cropping or scaling
-        constexpr std::string_view whitelist[] = {
+        SV_CONSTEXPR std::string_view whitelist[] = {
             "qt",      "aqua",     "caca",    "canvas", "eepic",
             "emf",     "gif",      "jpeg",    "pbm",    "png",
             "sixelgd", "tkcanvas", "windows", "wxt",    "svg"};
@@ -326,13 +387,13 @@ namespace matplot::backend {
     }
 
     bool gnuplot::terminal_has_position_option(const std::string &t) {
-        constexpr std::string_view whitelist[] = {"qt", "windows", "wxt"};
+        SV_CONSTEXPR std::string_view whitelist[] = {"qt", "windows", "wxt"};
         return std::find(std::begin(whitelist), std::end(whitelist), t) !=
                std::end(whitelist);
     }
 
     bool gnuplot::terminal_has_enhanced_option(const std::string &t) {
-        constexpr std::string_view whitelist[] = {
+        SV_CONSTEXPR std::string_view whitelist[] = {
             "canvas",     "postscript", "qt",       "aqua",     "caca",
             "canvas",     "dumb",       "emf",      "enhanced", "jpeg",
             "pdf",        "pdfcairo",   "pm",       "png",      "pngcairo",
@@ -343,7 +404,7 @@ namespace matplot::backend {
     }
 
     bool gnuplot::terminal_has_color_option(const std::string &t) {
-        constexpr std::string_view whitelist[] = {
+        SV_CONSTEXPR std::string_view whitelist[] = {
             "postscript", "aifm",     "caca",     "cairolatex", "context",
             "corel",      "eepic",    "emf",      "epscairo",   "epslatex",
             "fig",        "lua tikz", "mif",      "mp",         "pbm",
@@ -358,7 +419,7 @@ namespace matplot::backend {
         // and terminals for which we want to use only the default fonts
         // We prefer a blacklist because it's better to get a warning
         // in a false positive than remove the fonts in a false negative.
-        constexpr std::string_view blacklist[] = {
+        SV_CONSTEXPR std::string_view blacklist[] = {
             "dxf",      "eepic",   "emtex",   "hpgl",    "latex",
             "mf",       "pcl5",    "pslatex", "pstex",   "pstricks",
             "qms",      "tek40xx", "tek410x", "texdraw", "tkcanvas",

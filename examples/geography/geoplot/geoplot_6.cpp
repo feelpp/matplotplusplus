@@ -8,7 +8,7 @@ class eurotrip_solver {
   public:
     eurotrip_solver(const vector<double> &lat, const vector<double> &lon,
                     const vector<string> &names, axes_handle ax);
-    void run(int iterations = 100);
+    void run(size_t iterations = 100);
 
   private:
     void setup_starting_point(size_t iteration);
@@ -40,7 +40,7 @@ eurotrip_solver::eurotrip_solver(const vector<double> &lat,
                                  const vector<string> &names, axes_handle ax)
     : lat_(lat), lon_(lon), names_(names), ax_(ax) {}
 
-void eurotrip_solver::run(int iterations) {
+void eurotrip_solver::run(size_t iterations) {
     for (size_t i = 0; i < iterations; ++i) {
         setup_starting_point(i);
         iteration();
@@ -121,7 +121,7 @@ void eurotrip_solver::draw() {
 
     vector<double> sorted_lat;
     vector<double> sorted_lon;
-    for (const int &idx : best_tour_) {
+    for (const size_t &idx : best_tour_) {
         sorted_lat.emplace_back(lat_[idx]);
         sorted_lon.emplace_back(lon_[idx]);
     }
@@ -217,6 +217,6 @@ int main() {
     eurotrip_solver s(lat, lon, names, f->current_axes());
     s.run();
 
-    wait();
+    show();
     return 0;
 }
