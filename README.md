@@ -9300,17 +9300,10 @@ If contributing to the documentation, please edit [`README.md`](README.md) direc
         </a>
     </td>
     <td align="center">
-        <a href="https://github.com/Zengit123">
-            <img src="https://avatars.githubusercontent.com/u/13079947?v=4" width="100;" alt="Zengit123"/>
+        <a href="https://github.com/edvinsmineikis">
+            <img src="https://avatars.githubusercontent.com/u/13079947?v=4" width="100;" alt="edvinsmineikis"/>
             <br />
-            <sub><b>Zengit</b></sub>
-        </a>
-    </td>
-    <td align="center">
-        <a href="https://github.com/madronalabs">
-            <img src="https://avatars.githubusercontent.com/u/1434276?v=4" width="100;" alt="madronalabs"/>
-            <br />
-            <sub><b>Randy Jones</b></sub>
+            <sub><b>Edvins Mineikis</b></sub>
         </a>
     </td>
     <td align="center">
@@ -9321,18 +9314,25 @@ If contributing to the documentation, please edit [`README.md`](README.md) direc
         </a>
     </td>
     <td align="center">
-        <a href="https://github.com/avocadoboi">
-            <img src="https://avatars.githubusercontent.com/u/24738592?v=4" width="100;" alt="avocadoboi"/>
+        <a href="https://github.com/madronalabs">
+            <img src="https://avatars.githubusercontent.com/u/1434276?v=4" width="100;" alt="madronalabs"/>
             <br />
-            <sub><b>BjC6rn Sundin</b></sub>
+            <sub><b>Randy Jones</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/prudhomm">
             <img src="https://avatars.githubusercontent.com/u/151693?v=4" width="100;" alt="prudhomm"/>
             <br />
             <sub><b>Christophe Prud'homme</b></sub>
+        </a>
+    </td></tr>
+<tr>
+    <td align="center">
+        <a href="https://github.com/avocadoboi">
+            <img src="https://avatars.githubusercontent.com/u/24738592?v=4" width="100;" alt="avocadoboi"/>
+            <br />
+            <sub><b>BjC6rn Sundin</b></sub>
         </a>
     </td>
     <td align="center">
